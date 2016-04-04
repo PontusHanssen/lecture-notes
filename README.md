@@ -1,6 +1,7 @@
 # lecture-notes
 
 This is a collection of my notes taken from lectures at Linköping University.
+I take no responsibility for any errors or inconsistencies in the notes, enjoy!
 
 - [TDDA69](http://www.ida.liu.se/~TDDA69/)
 - [TDDC78](http://www.ida.liu.se/~TDDC78/)
