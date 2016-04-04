@@ -1,0 +1,628 @@
+\documentclass[course, english]{Notes}
+
+\title{Real Time Systems}
+\subject{CS}
+\author{Pontus Persson}
+\email{ponpe412@student.liu.se}
+\speaker{Simin Nadjm-Tehrani}
+\date{02}{11}{2015}
+\dateend{15}{01}{2016}
+\place{LiTH}
+\usepackage{centernot}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\begin{document}
+
+\lecture{02}{11}{2015}
+\section{Course overview}
+\begin{itemize}
+	\item Written exam (4p)
+	\item Labs (2hp)
+	\item Bonus points \$B in lectures
+\end{itemize}
+\subsection{Lab organization}
+Read lab material and prepare before the labs. Mandatory preparatory questions
+before access to lab.
+\\
+\textbf{Deadlines for the labs on the website!}
+After deadlines, individual.
+
+\section{Scheduling I}
+\subsection{What is a real-time system?}
+\begin{itemize}
+	\item Systems that have explicit timing requirements
+	\item Timing, Performance
+	\item Typical examples
+		\begin{itemize}
+			\item Traffic signal in a railway crossing: if signal
+				does not change to red a traffic accident can
+				happen. (Timing problem)
+			\item Alarm monitoring in chemical process plants:
+				deviations in liquid levels, pressure,
+				temperature can be signs of broken pipes/valves
+				and need to be detected in time
+			\item Cars and airplanes
+		\end{itemize}
+\end{itemize}
+Information only viable for a short period of time. \\
+There must not be a physical system to control. But the output is guaranteed to
+be produced in some input to the system inputs.
+
+\subsubsection{Requirements}
+Requirements are typically fuzzy. We \textbf{need} to know about input to say
+anything.
+\begin{itemize}
+	\item Volume: System must cope with high loads
+	\item Freshness: Only recent data useful, collected data needs to be
+		time-stamped
+
+\end{itemize}
+
+\subsection{Real-time processes}
+A schedulers role is to schedule CPU-time to processes.
+Processes with hard dealines it is not enough that processes get a share some time.\\
+
+\subsection{What is means by predictable}
+An external event causes a reaction in the system.
+\begin{itemize}
+	\item External event
+	\item Release time
+	\item Commputation time
+	\item Deadline
+\end{itemize}
+\begin{description}
+	\item[D] Relative deadline releasea
+	\item[Hard real-time systems] All processes meet their deadlines. 
+	\item[Hard deadlines] Not meeting one deadline is a failure of the system
+	\item[Soft deadlines] It is OK if deadlines are missed, but not desired.
+		\textit{How often?} 95\% maybe? (Streaming)
+	\item[Firm deadlines] Ok if missed, but if missed the result is useless.
+		(Too late SMS-ticket)
+\end{description}
+In general there are mostly soft and firm deadlines.
+
+\subsection{Ordering}
+\begin{table}[H]
+	\centering
+	\begin{tabular}{r r r}
+	Process & $p_1$ & $p_2$ \\
+	Comp.\ time & 5 & 12 \\
+	Deadline & 20 & 12
+
+	\end{tabular}
+	\caption{Ordering}
+\label{tab:ordering}
+\end{table}
+
+\textbf{Schedulable} if all processes can be ordered to meet deadlines.
+
+\begin{table}
+	\centering
+	\begin{tabular}{r r r}
+		& static & dynamic \\
+		offline & cyclic & x \\
+		online & RMS & EDF \\
+	\end{tabular}
+	\caption{Parameters}
+\label{tab:parameters}
+\end{table}
+
+\begin{description}
+	\item[Pre-emtive] Save the current running state to later be restored to
+		the same state.
+\end{description}
+
+\begin{itemize}
+	\item Parameters
+		\begin{itemize}
+			\item Deadline
+			\item Release time (earliest time it can start running)
+			\item Worst case execution time (WCET) 
+		\end{itemize}
+	\item How do determine deadlines?
+	\item When (how often) is a process released? (a function of the
+		dynamics of the system)
+	\item How much time can we allow for a task? (WCET)
+
+\end{itemize}
+\subsubsection{Release times}
+\begin{itemize}
+	\item Reading and reacting to continuous signals
+	\item Periodical
+	\item Reacting event aperiodic event
+		\begin{itemize}
+			\item Minimum inter-arrival time
+			\item Sporadic process if there is a minimum
+				inter-arrival time
+		\end{itemize}
+\end{itemize}
+\subsubsection{Computation time}
+\begin{itemize}
+	\item Depends on:
+		\begin{itemize}
+			\item Hardware
+			\item Application code (algorithm)
+			\item Inputs
+			\item Compiler
+		\end{itemize}
+\end{itemize}
+
+\subsection{Cyclic scheduling}
+\begin{itemize}
+	\item A schedule is created based on statically known and fixed
+		parameters.
+	\item Off-line decision on which task runs and when it runs
+		\begin{itemize}
+			\item When executing: Run the processes in predetermined
+				order using a look-up table
+		\end{itemize}
+	\item To run processes in the ``right'' frequency find
+		\begin{itemize}
+			\item Minor cycle (large repeating pattern, usually one)
+			\item Major cycle (smaller repeating pattern)
+		\end{itemize}
+	\item Each process $p_i$ is run periodically every $T_i$
+	\item Processes are placed in minor cycle and major cycle until
+		repetition appears
+\end{itemize}
+
+\begin{lstlisting}
+	for major_cycle{
+		for minor_cycle{
+			read in_signals();
+			wait(for_interrupt);
+			write out_signals();
+		}
+
+	}
+\end{lstlisting}
+
+\lecture{6}{11}{2015}
+If all processes fit in the minor cycles they are placed in the schedule is ok.
+Major cycle - lcm, minor lcg.\\
+What if sums of WCET does not fit in minor cycle or they aren't harmonic.
+\begin{itemize}
+	\item In either case we need to
+		\begin{itemize}
+			\item change the task set parameters
+			\item recall that all processes should be run at least
+				as often as every (original) $T_i$
+		\end{itemize}
+	\item Placee the processes in new minor cycl and major cycle until
+		repetition appears
+\end{itemize}
+Some times you can shorten the deadline/period $T_i$. 
+\\ You can move p back in time, drawbacks: Jitter - regularity in time.\\
+Lower $T_i$ run $p_i$ more often than necessary. Drawbacks: Utilization
+$U = \sum\\frac{c_i}{T_i}$. We get higher utilization, might not be good to fill
+up CPU (Extra task introduced tomorrow?).\\
+Combine tha two, one at higher frequenc, smaller minor cycle.\\
+\textbf{Important to know all restrictions}. If the restrictions prohibit the
+above, break $p_i$ into $p_{i1}$ and $p_{i2}$ (or more). Big drawback:
+maintainance!
+
+\subsubsection{Dependent processes}
+Could be due to sharing resources or computation precedence requirements. Mutual
+access to resources does not take place as each process is running aline with no
+interruptions.
+\begin{itemize}
+	\item Cycles can to determine and can become looong\ldots
+	\item Long WCET create problems
+	\item Sporadic processes are run peiodically
+		\begin{itemize}
+			\item Can lead to high processor utilization
+		\end{itemize}
+	\item Very inflexible!
+\end{itemize}
+\subsection{Priority-based scheduling}
+Preemtive method where the priority of the process determine order.
+
+\subsubsection{Rate Monotonic Scheduling (RMS)}
+
+\begin{itemize}
+	\item On-line
+	\item Preemptive
+	\item Priority base with fixed (static) priorities
+\end{itemize}
+
+Shorter $T_i$, the higher the priority.
+
+\subsubsection{Schedualability test}
+\begin{itemize}
+	\item Sufficient
+		\begin{itemize}
+			\item if test is passes, tasks are schedulable
+			\item fail, we do not know
+		\end{itemize}
+	\item Necessary
+		\begin{itemize}
+			\item If passes, we do not know
+			\item fails, not schedulable
+		\end{itemize}
+	\item Exact (Combined)
+\end{itemize}
+
+\begin{theorem}
+	For $n$ processes, RMS will guarantee their schedulability if the total
+	utilisation $U= \sum_i^n \frac{c_i}{T_i}$ does not exceed the guarantee
+	level $G = n(2^{\frac{1}{n}}-1)$
+	\label{Sufficient condition}
+\end{theorem}
+
+Exact schedulability test.
+\begin{description}
+	\item[Responsetime] $R_i=c_i+I_i$ time between release time and completion time
+\end{description}
+\begin{theorem}
+	Set schedulable if $R_i\leq T_i$ for all processes
+	\label{Exact schedulability test}
+\end{theorem}
+
+Calculate responce time:
+\begin{align*}
+	R_i &= C_i + I_i\\
+	I_i &= \sum_{j\in hp(i)} \ceil*{\frac{R_i}{T_j}}C_j\\
+	\hbox{Since $R_i$ is on both sides use:}\\
+	w_i^{n+1}&=C_i + \sum_{j\in hp(i)} \ceil*{\frac{w_i^n}{T_j}}C_j\\
+\end{align*}
+Starting with $w_i^0=C_i$ until $w_i^n=w_i^{n+1}$, $w_i^n = R_i$
+If not schedulable: Recude $C_i$, increase $T_i$, faster processor\ldots
+
+\begin{theorem}
+	RMS is omptimal among methods with fixed priority.\\
+	Schedulable with fixed priority $\Rightarrow$ RMS schedulable\\
+	$\not RMS \Rightarrow \not FP $
+	\label{Omtimality}
+\end{theorem}
+
+\begin{theorem}
+	For arbitrairly large $n$, it suffices that processor utilisation is $<$ 0.69
+	\label{Lowest upper bound}
+\end{theorem}
+\textcolor{red}{Bonus question, check slides and web page.}\\
+\textbf{Read up on Deadline Monotonic Scheduling (DMS)}
+
+
+\lecture{13}{11}{2015}
+
+\subsection{Dynamic priorities}
+\subsubsection{Earliest absolute deadline first}
+\textbf{EDF:} The process with nearest absolute deadline $d_i$ is run first.
+Processes are preemted if a new process with closer absolute deadline arrives.
+\\
+See example in slides for example where RMS and EDF fails to meet deadlines. 
+
+\begin{theorem}
+	A set of periodic taskt $P_1,\cdots,P_n$ for which $D_i=T_i$ is
+	schedulable with EDF iff $U=\sum \frac{C_i}{T_i} \leq 1$
+	\label{EDF schedulability}
+\end{theorem}
+
+\subsubsection{EDF vs RMS}
+\begin{itemize}
+	\item EDF gives higher processor utilisation
+	\item EDF has simple exact analysis
+	\item RMS can be implemented to run faster at run-time (if we ignore time for context switching)
+		
+\end{itemize}
+\textcolor{red}{Bonus question, check lecure slides!}\\
+\subsection{Sharing resources}
+Processes lock resources with semaphores.
+\begin{enumerate}
+	\item A low priority process $P_1$ locks the resource with semaphore
+		$S$.
+	\item A high prioritu process $P_2$ wants to run, blocks execution
+		until $P_1$ is done with $S$
+	\item A medium priority process arrives ($P_3$), preempts $P_1$, And
+		$S$ remains locked by $P_1$.
+	\item After $P_3$ is finished, the lower process must continue since the
+		lower priority process still has a lock on $S$.
+\end{enumerate}
+This is called \textcolor{red}{Priority inversion}.\\
+\textcolor{green}{Avoid} this by temporarily raise $P_1$'s priority to the same as $P_2$ untill the
+resource is released. $P_3$ can no longer interrupt $P_1$. This is called
+\textbf{priority inheritence}.
+
+\begin{itemize}
+	\item Is transitive (Inheritence can go multiple levels)
+	\item Can compute maximum blocking time for each resource (high priority
+		process $P_2$ blocked only under the time that $P_1$ uses the
+		resource)
+	\item All is well as long the resource is released
+	\item Does not acoid \textcolor{red}{DEADLOCK}
+\end{itemize}
+
+\subsubsection{Ceiling Protocols}
+Immediate priority Ceiling Protocol (ICP):
+\begin{itemize}
+	\item Dynamic priority for a process is the max of own (fized) priority
+		and the ceiling valiues of all resources it has locked
+	\item A process tht obtains a resource inheriths the resource's
+		\textit{ceiling
+		priority} - the highest priority aming all processes that can
+		possible claim that resource
+	\item When a resource is released, the priority of the process is
+		recalculated
+\end{itemize}
+Properties of ICP:
+\begin{itemize}
+	\item The blocking delay for process $P_i$ is a function of the length of all critical sections
+		\begin{itemize}
+			\item Calculate this $B_i$ for each process
+		\end{itemize}
+	\item Do not even need to use semaphores!
+	\item A process is blocked max once by another process with lower
+		priority
+	\item ICP prevents deadlocks
+	\item ICP prevents starvation
+\end{itemize}
+
+\subsubsection{Coffman conditions}
+\begin{enumerate}
+	\item Mutual exclusion
+		\begin{itemize}
+			\item A limited number of processes can acces a
+				resources at one time
+		\end{itemize}
+	\item Hold \& wait
+		\begin{itemize}
+			\item Processes hold resources and wait for other
+				processes at the same time
+		\end{itemize}
+	\item Voluntary release
+		\begin{itemize}
+			\item A process can only release a resource voulotarily
+		\end{itemize}
+	\item Circular wait
+		\begin{itemize}
+			\item There is a chain of processes that each waits for
+				a resource that is occupied by another process
+		\end{itemize}
+\end{enumerate}
+\lecture{17}{11}{2015}
+\subsubsection{Proof, FP and ICP prevents deadlock}
+Lets assume $p_1 \cdots p_n$ are in deadlock (so also in circular wait).\\
+\begin{align}
+prio(p_2) &= ceiling(r_1) \geq prio(p_1) \\
+prio(p_3) &= ceiling(r_2) \geq prio(p_2) \\
+&\vdots \\
+prio(p_n) &= ceiling(r_{n-1}) \geq prio(p_{n-1})
+	\label{A}
+\end{align}
+Transiticity of $\leq$ means $prio(p_1) \leq prio(p_n)$ and  
+$prio(p_1)=ceiling(r_n)\geq prio(p_n)$. This implies that $prio(p_1) =
+prio(p_n)$. Because of dynamic priorities two processes with the same priority
+can not be running simultaniously, contradiction!
+
+\subsubsection{Proof, ICP and starvation}
+Take a process $p$ that is waiting. This can be caused by:
+\begin{enumerate}
+	\item $p$ waits for another waiting process $q$
+	\item $p$ waits for a running process $q$
+		
+\end{enumerate}
+(2) No circular wait $\Rightarrow$ $q$ will eventually run. There is a waiting
+process (could be $q$) that is waiting for a running process.\\
+(1) Two cases:
+\begin{enumerate}
+	\item $q$ have lower fixed priority than $p$ $\Rightarrow$ $p$ is
+		blocked.
+	\item $q$ have higher fixed priority than $p \Rightarrow p$ is
+		interferred.
+\end{enumerate}
+$p$ is blocked maximum once and the waiting time is bounded. If $p$ is being
+interferred we know that the maximum interfference time $I_p$ is known and
+finite for non-starving processes. Therefore $p$ will not wait indefinetly is
+the $R_p \leq D_p$.
+
+\section{Distributed systems}
+All distributed systems have a few things in common:
+\begin{itemize}
+	\item Multiple CPUs
+	\item Disjoint address spaces
+	\item Inter-process communication
+	\item Collective goal
+\end{itemize}
+\subsection{Datacentre scheduling}
+\begin{itemize}
+	\item Tasks are encapsulated in VMs
+	\item Arrive from different nodes and their resource needs varies over
+		time
+	\item Goals: Allovate VMs to physical machines such that
+		\begin{itemize}
+			\item No PM is overloaded so that performance of dasks
+				is not degraded
+			\item No PM is severely underloaded so that energy is
+				not wasted
+		\end{itemize}
+	\item As load changes, decide which VM to migrate
+\end{itemize}
+\subsection{Overview}
+\begin{description}
+	\item[Skewness] Minimize skewness (unevenutilization of resources) over
+		a set of PMs
+\end{description}
+\begin{itemize}
+	\item Deal with fluctiations, predict the forthcoming load on each PM.
+	\item Identify candidates for overload
+		\begin{itemize}
+			\item Hotspot solver
+		\end{itemize}
+	\item Identify PM that runs at lower utilization
+		\begin{itemize}
+			\item Coldspot solver
+		\end{itemize}
+\end{itemize}
+\subsubsection{Two mechanisms}
+\begin{itemize}
+	\item Hotspot solver - if above hot threshold, migrate VMs
+	\item Coldspot solver - if below green computing threshold, migrate VMs
+\end{itemize}
+\subsubsection{Precitor}
+Based on observation O(t) and previous estimate E(t-1) they suggest the Fast Up
+Slow Down (FUSD).
+\begin{align*}
+	E(t) &= \alpha * E(t-1) + (1-\alpha)*O(t)
+\end{align*}
+where $\alpha$ is a parameter experimentally chosen as -0.2 when O(t) is rising
+and 0.7 when O(t) is falling. Adding a window $W$ of observations and taking the
+90th percentile improves the algoritm.
+
+\subsubsection{Skewnewss}
+The skewness for a server p as a function of idividual resources used within it.
+The sum of VMs utilization of a resource.
+\begin{align}
+	skewness(p) &=\sqrt{\sum^{n}_{i=1}\left(\frac{r_i}{\hat{r}}-1\right)^2} \\
+	temperature(p) &= \sum_{r \in R}(r-r_t)^2
+\end{align}
+Move hottest VM in hottest PM that reduces skewness the most to a colder PM that
+does not become hot and reduces skewness.\\
+\subsubsection{Causality}
+\begin{itemize}
+	\item If an event e occurs after $e'$ then e cannot be the cause of
+		$e'$
+	\item If an event e occurs before $e'$ then e can be the cause of
+		$e'$
+	\item Temporal order os necessary bur not sufficient for causal order
+\end{itemize}
+Some times time is more important than order and vice versa.
+
+\lecture{20}{11}{2015}
+\subsection{Local vs. global clock}
+\begin{itemize}
+	\item Most physical (logical) clocks are not always accurate
+	\item What is accurate? UTC, atom cloks, adjusted time for rotation from
+		IAT international atomic time.
+\end{itemize}
+External synchronization: local clocks $C_0\cdots C_1 \cdots C_n$ synchronizes
+with a exact clock $C_{UTC}$ within a maximum skew of $\delta$.\\
+Internal synchronization: Tries to keep a set of clock values close to each
+other with a maximum skew of $\delta$.
+
+\begin{theorem} 
+	Each clock reads the value of all other clocks at regular intervals. If
+	the value of some clock drifts from the own clock more than $\delta$,
+	that clock value is replaced by own clock value. The average of all
+	clocks is computed.\\
+	At node $c_i$:
+	\begin{align*}
+		|c_i-c_j|&>\delta \Rightarrow c_j:=c_i \\
+		c_i &= \frac{\sum{c_j}}{n}
+	\end{align*}
+	\label{Lamport/Melliaar-smith algoritm}
+\end{theorem}
+After each synchronization interval the clocks get closer to each other. \\
+If a clock skew exceeds $\delta$ then its value is eliminated - does not harm
+other clocks.
+
+Two faced faulty clock: $c_i=c$, $c_j=c-\delta$ and $c_k$ tells $c_i$ $c+\delta$
+and $c_j$ $c-2\delta$.\\
+To guarantee that the set will keep all non-faulty clocks within $\delta$ the
+number of faulty clocks $t$ have to be $n>3t$ where $n$ is the number of clocks.
+
+\subsection{Local time}
+In the absense of clock synchronization we may use other that is intrinsic in an
+application.
+\subsubsection{Happend before $\preccurlyeq$}
+\begin{enumerate}
+	\item If the time for event is before the time for event y then
+		$x\preccurlyeq$
+	\item If x denotes sending a message and y denotes recieving the same
+		message then $x\preccurlyeq y$
+	\item $\preccurlyeq$ is transitive
+\end{enumerate}
+Logical clocks are based on event counts at each node.
+\begin{itemize}
+	\item May reflext causality
+	\item Sending a message always precedes recieving it
+	\item Messages sent in a sequence by one node are (potentially) causally
+		related to each other
+\end{itemize}
+
+\subsubsection{Implementing logical clocks}
+\begin{enumerate}
+	\item Each time a local event taces place increment LC by 1
+	\item Each time a message m i sent the LC value of the sender is
+		appended to the message (M\_LC)
+	\item Each time a message m is received set LC to max(LC, m\_LC)+1
+\end{enumerate}
+
+\begin{align*}
+	x \preccurlyeq y &\rightarrow LC(x) \leq LC(y) \\
+	LC(x) \leq LC(y) &\centernot\rightarrow x\preccurlyeq y
+\end{align*}
+\subsubsection{Is concurrency transitive?}
+\begin{itemize}
+	\item e is concurrent with g
+	\item g is concurrent with f
+	\item BUT e is not concurrent with f
+\end{itemize}
+
+\subsection{Vector clocks (VC)}
+\begin{itemize}
+	\item Evey node contains a vector of counted events (one entry for each
+		node)
+	\item VC for event e, $VC(e)=[1,\cdots,n]$, shows the percieved count of
+		events at nodes $1,\cdots,n$
+	\item $VC(e)[k]$ denotes the entry for node k
+\end{itemize}
+Implementation
+\begin{enumerate}
+	\item For each local event increment own entry
+	\item hen sending message m, append to m the VC(send(m)) as a time stamp
+		T
+	\item When x is receiving a message at node i,
+		\begin{enumerate}
+			\item Increment own entry: $VC(x)[i];=VC(x)[i]+1$
+			\item For every entry j in the VC: Set the entry to
+				$max(T[j],VC(x)[j])$
+		\end{enumerate}
+\end{enumerate}
+elation $<$ on vector clock defined by: $VC(x) < VC(y)$ iff
+\begin{itemize}
+	\item For all i: $VC(x)[i] \leq VC(y)[i]$
+	\item For some i: $VC(x)[i]<VC(y)[i]$
+\end{itemize}
+It follows that event $x \preccurlyeq y$ if $VC(x) < VC(y)$. \\
+Hence:
+\begin{itemize}
+	\item $VC(x) < VC(y)$ iff $x \preccurlyeq y$
+	\item If neither $VC(x) < VC(y)$ nor $VC(y) < VC(x)$ then x and y are
+		concurrent
+\end{itemize}
+\subsection{Hard real-time communication}
+\begin{description}
+	\item[Resource] Bandwidth
+	\item[Scheduled elment] Message
+	\item[Demand on esource] Message size \& frequency
+	\item[Performance metric] Message delay \& throughput
+\end{description}
+Two well-known methods for bus scheduling.
+\begin{itemize}
+	\item Event triggered (CAN)
+	\item Time triggered (TTP)
+\end{itemize}
+Used extensively in automotive and aerospace applications.
+\subsubsection{The CAN bus}
+The controller area network that was developed for use in all cars build in
+Europe. Why? Imagine: 2500 signals, 32 ECUs on one bus.\\
+Collisions cause non-determinism, otherwise we would just use ehternet with
+CSMA/CD. If you cannot measure effects of collisions, make collision resolution
+deterministic!\\
+CAN uses CSMA/CR (Collision Resolution). 
+\begin{description}
+	\item[Collision Resolution] Bit-wise arbitration blus fixed priorities
+\end{description}
+\begin{itemize}
+	\item Every message have an ID at the beginning
+		\begin{itemize}
+			\item The initial bits inserted in the bus are the
+				ID-bits
+			\item priority of the message decreases as ID increases
+		\end{itemize}
+\end{itemize}
+\lecture{15}{12}{2015}
+
+\end{document}

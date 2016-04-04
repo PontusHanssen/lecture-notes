@@ -1,0 +1,867 @@
+%        File: TDDD25-lectures.tex
+%     Created: Wed Jan 27 01:00 PM 2016 C
+% Last Change: Wed Jan 27 01:00 PM 2016 C
+%
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{centernot}
+\title{TDDD25: Distributed Systems\\Lecture Notes}
+\author{Pontus Persson}
+\date{VT-2016}
+
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proof}{Proof}
+\newtheorem{question}{Question}
+\begin{document}
+\maketitle
+\tableofcontents
+\section{Communication in Distributed Systems}
+\marginpar{\emph{Lecture 3\\2016-01-27}}
+\subsection{Layered implementation}
+\begin{table}[H]
+	\centering
+	\begin{tabular}{l}
+		Application/Services\\
+		RMI, RPC (middleware)\\
+		Request \& Reply (middleware)\\
+		OS and Network protocol\\
+		Hardware
+	\end{tabular}
+	\caption{Layered network stack}
+\end{table}
+An application developer is only interested in what middleware is running on the
+machine (above transport).\\
+Communication between processes using send/receive primitives.
+\begin{definition}
+	RMI - Remote Method Invocation. \\
+	RPC - Remote Procedure Call.\\
+	Make distributed computed looking like
+	centralized computing.
+\end{definition}
+\section{RMI}
+Using RMI or RPC the programmer is unaware of the request and reply messages
+\marginpar{The proxy is the server's embassy in the country of the client}
+which are sent over the network during the execution.
+
+\begin{enumerate}
+	\item Client object invokes a call to the server object
+	\item Call is delivered to a proxy for the server (on the client)
+	\item The proxy marshal the arguments (packs them, to be sent over
+		network)
+	\item The marshalled data is then sent to the Communication module (part
+		of middleware)
+	\item The communication module gets information from the Remote
+		Reference module (telephone book, middleware) and sends the data
+		over the network to the node of the server object
+	\item Communication module on server looks up what object packet is
+		meant for.
+	\item The skeleton is another object which corresponds to a server
+		object on the node. It has the same methods as the server
+		object. Unmarshals the arguments.
+\end{enumerate}
+\begin{question}
+What is the two computer uses different representation of int, float, char,
+etc?\\
+\textbf{Most elegant and flexible way is to have a general representation for
+communication and have Proxy/Skeleton convert it during (un)marshaling}
+\end{question}
+\begin{question}
+	Who generates the classes for proxy and skeleton?\\
+	\textbf{In advanced middleware systems (COBRA) classes for proxies and
+	skeletons can be automatically generated. Needs generic representation
+and server interface.}
+\end{question}
+
+\subsubsection{Interface description language}
+Middleware\\
+Write description, send to compiler that generates skeleton code in a specified
+code (C++, Java, etc.). Write description of what methods can be invoked
+remotely.
+
+\subsection{RPC}
+Not object oriented. Does not use proxy and skeleton, uses \textit{client stub}
+and \textit{server stub} which have the same roles as the proxy and skeleton.
+
+\subsection{RMI Semantics and Failures}
+\begin{question}
+	What happens if certain failures occur when using RMI?\\
+	We consider the following causes of failures:
+	\begin{enumerate}
+		\item Lost request message
+		\item Lost reply message
+		\item Server crash
+		\item Client crash
+	\end{enumerate}
+	We will consider an \textbf{omission} failure model.\\
+	\textbf{Answer:}
+	\begin{enumerate}
+		\item Client communication module repeats send until success (or timeout?). 
+		\item Same as above for client. Server must handle duplicate
+			requests. (idempotent or not idempotent operations) Must
+			know if request is first or a resent message. Have to
+			keep a history of past messages.
+		\item \begin{itemize}
+				\item Crashes after operation, before reply.
+				\item Crashes before operation.
+			\end{itemize}
+			Either resend until success or send only once and report
+			failure. Used depending on if server have commit
+			algorithms.
+		\item Basically not a problem (no one can complain)
+	\end{enumerate}
+
+\end{question}
+\marginpar{\emph{Lecture 4\\2016-01-29}}
+\subsection{Indirect communication}
+Previously discussed methods are based on direct communication with a direct
+coupling between sender and receiver. The sender has a reference to the
+receiver. Indirect communication enables more flexibility.
+\\
+\begin{definition}
+	Indirect communication\\
+\begin{itemize}
+	\item No direct coupling
+	\item Communication performed via an intermediary
+	\item Space uncoupling (sender unknown of receiver id)
+	\item Time uncoupling (sender and receiver have independent lifetimes:
+		they do not need to exist at the same time)
+\end{itemize}
+\end{definition}
+Two examples:
+\begin{itemize}
+	\item Group communication
+	\item Publish-subscribe systems
+\end{itemize}
+\subsubsection{Group Communication}
+Broadcast to group. There is a sender and some unidentified receivers (only the
+group is known). Message is sent  to ``group address expansion''.\\
+Beneficial when:
+\begin{itemize}
+	\item Mail lists
+	\item Fault tolerance based on replication
+	\item Location a service or object in a distributed system. Send to all,
+		but only get answer from one.
+	\item Replicated data
+\end{itemize}
+
+\begin{description}
+	\item[Group membership management] maintains the view of group
+		membership, members joining, leaving or failing
+\end{description}
+GMM needs to handle create/destroy groups, add/withdraw processes to/from
+groups, handle faults.
+\textbf{Essential features:}
+\begin{itemize}
+	\item Atomicity (all or nothing)
+	\item Ordering (Total order required (FIFO)? Only order within each
+		group node)
+\end{itemize}
+
+\subsubsection{Publish-subscribe systems}
+Publishers publish events, subscribers subscribe and receive events they are
+interested in. Propagate information in an anonymous, decoupled fashion.
+Information is sent via a ``Notification Service''. It handles the communication
+with the subscribers, and (un)subscribe events.
+
+\begin{description}
+	\item[Centralized] Simple, limited scalability
+	\item[Distributed] distributed processes (brokers). Scalable but hard to
+		implement, complex.
+\end{description}
+
+\section{Distributed Heterogeneous Applications and CORBA}
+Distributed applications are typically heterogeneous, different hardware,
+software, unconventional devices, diverse networks and protocols.
+\subsection{Objects in distributed systems}
+Objects talks to each other via ``Object Request Broker'' (ORB) and Object
+services middleware. Looking back at RMI, everything besides server/client
+object is middleware. Communications module and Reference module is part of ORB.
+Proxy and Skeleton are part of ORB, part of client/server objects.
+
+\subsection{CORBA}
+Common Object Request Broker Architecture. CORBA is not a middleware, it is a
+specification of middleware functions,\\
+Key concepts:
+\begin{itemize}
+	\item Specifies middleware services
+	\item An objec can be a client, server or both
+	\item Interactions though requests. A request is composed of:
+		\begin{enumerate}
+			\item An operation to be performed
+			\item a target object
+			\item zero or more parameters
+		\end{enumerate}
+	\item Supports satic as well as dynamic bindings
+	\item Interface represents contract between server and client
+	\item CORBA does not know about underlying implementation
+\end{itemize}
+
+Dynamic invocation enables a developer to not specify the server interface
+during development (no proxy). Interface repository has implementations of all
+server interfaces to generate a proxy during run-time.
+\subsection{Static and dynamic invocation}
+Static, everything is known at compile time. Dynamic, everything detected during
+run-time. From server pov static and dynamic invocation are identical.
+\begin{itemize}
+	\item Naming and trading services
+	\item Transaction Management Services
+	\item Concurrency Control Services
+	\item Security Services
+	\item Time Services
+\end{itemize}
+\subsubsection{Inter-ORB Architecture}
+\begin{description}
+	\item[General Inter-ORG Protocol (GIOP)] Defined in CORBA 2.0. Specified
+		a set of message formats and common data representations for
+		communication over any connection oriented transport protocol
+	\item[Internet Inter-ORB Protocol (IIOP)] IIOP is a particularization of
+		GIOP. Specifies how to exchange messages over TCP/IP.
+\end{description}
+
+\subsection{P2P Systems}
+Issues:
+\begin{itemize}
+	\item Placement of data and their replica across many hosts
+	\item Access to data
+	\item Balance of system
+	\item Availability
+\end{itemize}
+\marginpar{\emph{Lecture 5\\2016-02-01}}
+\section{Time in Distributed Systems}
+Each machine has its own clock - no notion of global time. Can cause problems
+for programs (example: make).\\
+Synchronize physical clocks:
+\begin{itemize}
+	\item Clocks synchronized with another to an achievable, known degree of
+		accuracy
+	\item Physical clock synchronization is needed for distributed real-time
+		systems
+\end{itemize}
+
+\subsection{Logical clocks}
+\begin{itemize}
+	\item Relative order of events
+	\item No need for synchronized physical clocks
+	\item Logical time implemented using logical clocks
+\end{itemize}
+\subsubsection{Lamport's Logical Clocks}
+Ordering can be based on two simple situations:
+\begin{enumerate}
+	\item If two events occurred in the same process, then they occurred in
+		the order observed following the respective process.
+	\item Whenever a message is sent between processes, the event of sending
+		the message occurred before the event of receiving it.
+\end{enumerate}
+Happened before ($\rightarrow$):
+\begin{itemize}
+	\item $a\rightarrow b$, a and b are events in the same process and a
+		occurred before b
+	\item $a\rightarrow b$, if a if the event of sending a message m in a
+		process and b is the receiving event of message m, a occurred
+		before b
+	\item $a\rightarrow b$, if $a\rightarrow c$ and $c\rightarrow b$
+	\item If $a\rightarrow b$, we say that event a \textbf{causally} affects event b
+	\item There are events which are not related by the
+	happened-before relation. If both $a\rightarrow b$ and
+	$b\rightarrow a$ are false they are \textbf{concurrent}: $a || b$
+\end{itemize}
+In each process $P_i$ there is a logical clock $C_{P_i}$.
+\begin{definition}
+	$C_{P_i}(a)$ = the timestamp of event $a$ in process $P_i$.
+\end{definition}
+\begin{lemma}
+	$a\rightarrow b \Rightarrow C(a)<C(b)$ \\
+	\textbf{NOTE!}: $\Rightarrow$
+\end{lemma}
+Rules for Lamport's logical clocks:
+\begin{enumerate}
+	\item $C_{P_i}$ is incremented before each event is issued at process
+		$P_i$.
+	\item \begin{enumerate}
+			\item When $a$ is a send event from process $P_i$, then
+				the timestamp \\$t_m=C_{P_i}(a)$ is included in m.
+			\item Upon receiving the message m in $P_j$, its clock
+				local clock $C_{P_j}$ is updated as follows:\\
+				$C_{P_j} := max(C_{P_j},t)$
+			\item $C_{P_j}$ is incremented
+		\end{enumerate}
+\end{enumerate}
+\marginpar{\emph{Lecture 6\\2016-02-03}}
+\begin{lemma}
+	If $a\rightarrow b$ and $b\rightarrow c$ then $a\rightarrow c$ and
+	$C(a)<C(c)$
+\end{lemma}
+\textcolor{red}{Problem with Lamport's clocks are that they only impose a
+partial order.}
+\subsubsection{Total ordering with Lamport's clocks}
+Use a tuble, second value is the process number. Total order without the
+$\rightarrow$ relation.
+
+\begin{lemma}
+	if $C(a) > C(b) \implies a \centernot \rightarrow b$
+\end{lemma}
+\subsection{Vector Clocks}
+Vector clocks give the ability to decide whether two events are causally related
+or not by simply looking at their timestamp.
+\textbf{Algorithm for Vector Clocks:}
+\begin{itemize}
+	\item Each process $P_i$ has a clock $C_{P_i}$, integer vector of length
+		$n$
+	\item $C_{P_i}(a)$ is the timestamp of event a in process $P_i$
+	\item $C_{P_i}[i]$ counter of events in $P_i$
+	\item $C_{P_i}[j], j\neq i$ is $P_i$'s best guess of the local event
+		counter at $P_j$
+		\begin{itemize}
+			\item $C_{P_i}[j]$ indicates the value of the local
+				event counter of $P_j$ at the occurrence of the
+				last event at $P_j$ which is in a
+				happened-before relation to the current event at
+				$P_i$
+		\end{itemize}
+\end{itemize}
+\textbf{Rules for Vector Clocks}
+\begin{enumerate}
+	\item $C_{P_i}[i]$ is incremented before each event
+	\item \begin{enumerate}
+			\item When a is a event of sending message m from
+				process $P_i$, then the timestamp
+				$t_m=C_{P_i}(a)$ is included in m.
+			\item On receiving message m in process $P_j$  its
+				vector clock is updated as follows\\
+				$\forall k \in \{1,2,\cdots,n\} C_{P_j}[k] =
+				max(C_P{P_j}[k],t_m[k])$
+		\end{enumerate}
+\end{enumerate}
+\begin{definition}
+	For any two vector timestamps u and v
+	\begin{itemize}
+		\item $u=v$ iff $\forall i, u[i]=v[i]$
+		\item $u\leq v$ iff $\forall i, u[i]\leq v[i]$
+		\item $u < v$ iff $u \leq v \land u\neq v$
+		\item $u||v$ iff $\lnot(u<v) \land \lnot(v<u)$
+		\item Two event a and b are causally related iff $C(a)<C(b)$ or
+			$C(b) < C(a)$ otherwise concurrent.
+	\end{itemize}
+\end{definition}
+\marginpar{\emph{Lecture 7\\2016-02-08}}
+\section{Global States}
+\begin{question}How do we collect and record a consistent global state in a distributed
+system?\\
+\begin{itemize}
+	\item Checkpoints, save state at regular intervals
+	\item Interrupts
+\end{itemize}
+\end{question}
+\begin{definition}
+	In general, a global state consists of a set of local sets and a set of
+	setates of the communication channels.
+\end{definition}
+\begin{definition}
+	The state of a process is a set of all send and received messages at one
+	point in time.
+\end{definition}
+In a consistent state, all messages in the channel should be in the set of sent
+messages and no messages in the channel should be in the set of received
+messages.\\
+But, since recording the channel is usually impossible we need to derive the
+channel state from recorded node states.\\
+\begin{definition}
+	\begin{itemize}
+		\item $LS_i$ local state of $P_i$. 
+		\item $GS = \{LS_1,LS_2,\dots,LS_n\}$ Global state
+		\item A certain GS can be consistent of not!
+		\item $send(m^k_{ij})$ denotes the event of sending the kth message
+			$m^k_{ij}$ from $P_i$ to $P_j$
+		\item $rec(m^k_{ij})$ receive event\dots
+		\item $send(m^k_{ij}) \in LS$ iff the sending event occurred
+			before the LS was recorded.
+		\item $rec(m^k_{ij}) \in LS$ iff the receiving event occurred
+			berfore the LS was recorded.
+		\item $transit(LS_i,LS_j)=\{m^k_{ij}|send(m^k_{ij}) \in LS_i
+			\land rec(m^k_{ij}) \centernot \in LS_j \}$
+		\item $inconcistent(LS_i.LS_j)=\{m^k_{ij})|send(m^k_{ij}) \notin
+			LS_i \land rec(m^k_{ij}) \in LS_j\}$
+		\item A GS is consistent iff $\forall i,\forall j:1\leq i,j
+			\leq n : : inconsistent(LS_i, LS_j) = \emptyset$
+		\item A GS is transitless iff $\forall i,\forall j:1\leq i,j
+			\leq n : : transit(LS_i, LS_j) = \emptyset$
+		\item A transitless GS is not necessary consistent.
+	\end{itemize}
+\end{definition}
+\begin{definition}
+	Strongly consistent is a GS that is consistent and transitless
+\end{definition}
+\subsection{Cuts of a Distributed Computation}
+\begin{definition}
+	A cut is a graphical representation of a GS. A consistent cut is
+	graphical representation of a consistent GS.
+	\begin{itemize}
+		\item A cut of a distributed computation is a set
+			$Ct=\{c_1,c_2,\dots,c_n\}$ where $c_i$ is the cut event
+			at process $P_i$
+		\item A cut event is the event of recording a local state of the
+			respective process.
+	\end{itemize}
+\end{definition}
+\begin{definition}
+	Let $e_k$ denote an event at process $P_k$. A cut $Ct$ is a consistent
+	cut iff $\forall i, \forall j \centernot \exists e_i, \centernot \exists
+	e_j $ such that $(e_i \rightarrow e_j) \land (e_j \rightarrow c_j) \land
+	\lnot (e_i \rightarrow c_i)$
+\end{definition}
+\begin{lemma}
+	A cut $Ct$ is a consistent cut iff not two cut events are causally
+	related, that is:\\
+	$\forall c_i, \forall c_j : : \lnot (c_i \rightarrow c_j) \land \lnot
+	(c_j \rightarrow c_i)$\\
+	\textbf{A set of concurrent cut events form a consistent cut}
+\end{lemma}
+\subsection{Global State Recording}
+(Chandy-Lamport Algorithm). The algorithm records a collection of local states
+which give a consistent GS. Also records states of the channels. Such a recorded
+view is called ``Snapshot''. 
+\begin{itemize}
+	\item Channels are FIFO and unidirectional
+	\item Graph of processes is strongly connected.
+	\item Based on the use of a special message, snapshot token to control state
+			collection.
+\end{itemize}
+\marginpar{\emph{Lecture 8\\2016-02-12}}
+How to collect a global state:
+\begin{enumerate}
+		\item $P_i$ wants to save GS. Save $LS_i$ and send out tokens on its
+				output Ch.
+		\item $P_j$ receives token, saves $LS_j$ and saves $Ch_{ij}=\emptyset$
+		\item $P_k$ receives token, $Ch_{ik}=\emptyset$.
+		\item $p_j$ receives the token again from $P_k$. $LS_j$ is already
+				saved, do not save again. Save consistent to all connecting LS.
+				$Ch_{kj}=$ ``all events received between $LS_j$ and token from
+				$P_k$''.
+\end{enumerate}
+\section{Mutual Exclusion}
+Token based or not token based.
+\subsection{Central coordinator}
+A central coordinator grants permission to enter a CS. Can be a process in the
+system, works like a resource manager. 
+
+\marginpar{\textit{Lecture 9\\2016-02-15}}
+\subsection{Token ring}
+Pass token around. If receiver needs token, execute CS, otherwise immediately
+pass it to next process.
+
+\subsection{Election}
+Many distributed systems require one process to act as a coordinator or hold a
+special role. Mutual agreement. 
+\\
+We do not case which process is elected as long as one and only one process is
+elected and all other processes are informed.\\
+Election is typically started after a failure. The process who detects a failure
+can call for an election. 
+\subsubsection{Bully algorithm}
+A process initiates the election and sends a election message to all processes
+with a higher identifier. If it does not get an answer, the sending process
+assumes the role as coordinator and sends a coordinator message to all
+processes.\\
+When a process receives an election message it replies to the sending process
+and starts an election process of its own.\\
+Finally all processes get a coordinator message except the elected coordinator.
+
+\subsubsection{Ring-based election}
+Election in a logical ring. Process puts id in an election message. At each step
+in the ring, replace or keep id depending on if own if is greater or not. When
+process receives election message with its own id it is the coordinator and
+sends a coordinator message on the ring.
+
+\section{Replication}
+Benefits:
+\begin{itemize}
+		\item Availability and fault tolerance
+		\item Performance enhancement
+\end{itemize}
+Requirements:
+\begin{itemize}
+		\item Replication transparency (clients are not aware)
+		\item Consistency. The correct data should always be served. Notion of
+				correct data depends on the application
+\end{itemize}
+Problems:
+\begin{itemize}
+		\item Order of operations
+		\item Do we always need to update all replicas?
+		\item Effect of replication on performance
+\end{itemize}
+The RMs talk to each other to ensure consistency or alternatively FEs can
+communicate to one or with several RMs.\\
+OR there exists a primary RM. All updates are directed to the primary PM. Read
+requests can use any RM.
+\marginpar{\textit{Lecture 10\\2016-02-17}}
+\begin{description}
+		\item[Total ordering] Any two requests are processed in the same order
+				at all RM (causal not required)
+		\item[Causal ordering] Two requests in a happened-before relation has to
+				be processed in that order at all RM.
+\end{description}
+
+\subsection{Total ordering}
+Assign totally ordered ids to requests. Note that it is important that the site
+knows when to process a request $r_1$ with $uid(r_1)$ so that no other request
+$r_2$ can arrive later, so that $uid(r_2)<uid(r_1)$.
+\begin{itemize}
+		\item Central sequencer
+		\item Distributed mutual agreement
+\end{itemize}
+\subsubsection{Total order with distributed agreement}
+\begin{enumerate}
+		\item Each RM proposes a candidate unique identifier $cuid(RM, r)$ for a
+				request r, the cuid is forwarded to the FE which issued the
+				request
+		\item One of the candidate identifiers is selected by the FE and it
+				becomes the unique id $uid(r)$ and is communicated to the RMs.
+\end{enumerate}
+Each RM keeps:
+\begin{description}
+		\item[$SEEN_i$] the largest $cuid(RM_i,r)$ assigned to any request r so
+				far by $RM_i$
+		\item[$ACCEPT_i$] The largest $uid(r)$ assigned to any r so far accepted
+				by $RM_i$
+		\item [Hold back queue $HBq_i$] r stored in $HBq_i$ ordered by its
+				$cuid(RM_i,r)$. When $uid(r)$ is received, r is reordered
+				according to it. When r is at the front and have a $uid$ it is
+				moved to $Pq_i$
+		\item[Processing queue $Pq_i$] Holds accepted requests. Processed in
+				order of their $uid$
+\end{description} 
+\begin{definition}
+		$cuid(RM_i,r) = max(floor(SEEN_i(, floor(ACCEPT_i))+1+i/N$
+\end{definition}
+In order to be moved to the $PBq$ the request has:
+\begin{itemize}
+		\item to be at the front of $HBq$
+		\item to have got an $uid$
+\end{itemize}
+\subsection{Update protocols}
+How do we solve that a user request is always provided with the most recent
+information
+\subsubsection{Read any, write all}
+\begin{itemize}
+		\item Read operation performed on any RM
+		\item Write operation performed on all RMs
+\end{itemize}
+\subsubsection{Avaliable copies}
+Same as above, but only write to available copies
+
+\subsubsection{Primary copy}
+RM holding primary copy tells other RMs to update.
+\subsubsection{Voting protocol}
+With voting, the requirement to write to all is softened w/o giving up strong
+consistency. The price is that you need to read several copies.
+\begin{definition}
+		Write quorum $w > \frac{N}{2}$\\
+		Read quorum $r+w>N$
+\end{definition}
+\section{Fault Tolerance}
+Fault tolerance, no failures. Fault tolerance is to maintain a correct
+(predictable) functionality in the presence of faults.\\
+\begin{description}
+		\item[Permanent fault] remains until it is repaired or affected unit
+				replaced
+		\item[Intermittent fault] vanishes and reappears (but cause remains,
+				loose wire)
+		\item[Transient fault] the fault dies away after some time (environment)
+\end{description}
+\begin{enumerate}
+		\item Fault-stop fault
+		\item Slowdown fault (can not be detected with timeout)
+		\item Byzantine fault (we know nothing)
+\end{enumerate}
+\subsection{Redundancy}
+If a system has to be fault-tolerance, it has to be provided with spare capacity
+$\Rightarrow$ redundancy:
+\begin{description}
+		\item[Time redundancy] Reruns and resends
+		\item[Hardware redundancy] More hardware than needed for basic
+				functionality
+		\item[Software redundancy] results from different versions are compared,
+				when one version fails another one can take over. The versions
+				should not be binary equal!
+		\item[Information redundancy] checksums, parity bits, cyclic codes, etc.
+\end{description}
+\marginpar{\textit{Lecture 11\\2016-02-22}}
+\subsection{Time redundancy and Backward Recovery}
+Basic idea with backward computation - roll back computation to a previous
+checkpoint.\\
+\subsection{Forward Recovery}
+The error is masked without any computations having to be redone. ``Hiding the
+error and continue computation with correct value''.
+\begin{description}
+		\item[Detection] If one or more units are faulty, thins shows up as a
+				disagreement in the results. (Even byzantine errors can be
+				detected).
+		\item[Correction and masking] if only a minority of the units are faulty
+				the majority result can be used to correct and mask the failure.
+\end{description}
+Replacement of malfunctioning units: correction and masking are
+short-term measures.
+\subsection{N-modular redundancy}
+N-modular redundancy (NMR) is a scheme for forward error recovery. N units used,
+instead of one, and a voting scheme is used on their output.\\
+3-modular redundancy is the most commonly used.
+\subsubsection{Voters}
+\begin{description}
+		\item[Majority vote]
+		\item[Not strict equality] If $|x-y|< \epsilon$ we consider $x=y$
+		\item[k-plurality voter] it is sufficient that $card(P_i)\leq k$ for
+				largest set
+		\item[Median voter]
+\end{description} 
+\subsection{k Fault tolerant systems}
+For $k$ faulty nodes:
+\begin{description}
+		\item[Fail-stop] $k+1$ nodes total
+		\item[Byzantine] $2k+1$
+\end{description}
+\subsection{Software Redundancy}
+\begin{itemize}
+		\item A software fault is always caused by a mistake in specification or
+				by a bug
+				\begin{enumerate}
+						\item No software bugs are produced by manufacturing,
+								aging, stress
+						\item Different copies, identical
+				\end{enumerate}
+		\item Must use different algorithms, compilers, languages to achieve
+				diverse software
+\end{itemize}
+\subsection{Distributed Agreement with Byzantine Faults}
+\begin{question}
+		How many correct processors are needed in order to achieve k-fault
+		tolerance.\\
+		\textbf{Answer: $3k+1$ processors to achieve tolerance for k-fault agreement
+		with byzantine faults}
+\end{question}
+\section{Real Time Systems}
+Need for synchronized distributed clocks:
+\begin{description}
+		\item[Time driven] statically scheduled systems
+		\item[Time stamps] certain events are associated with a time stamp
+				showing the actual time when they have been produced
+		\item[Calculate the duration of activities] If activity starts on one
+				process and finish on another (passing message), calculating the
+				duration needs clocks to be synchronized. (Speed of light)
+\end{description}
+\subsection{Computer clocks}
+\begin{itemize}
+		\item Quartz crystal oscillates at a well defined frequency.
+		\item After a number of oscillations an interrupt is sent. This is a
+				clock tick
+		\item At each clock tick the computer clock is incremented by software
+\end{itemize}
+The problems:
+\begin{itemize}
+		\item Crystals not tuned perfectly
+				\begin{itemize}
+						\item Clock drift
+				\end{itemize}
+		\item Crystals are never identical
+				\begin{itemize}
+						\item Clock skew
+				\end{itemize}
+\end{itemize}
+\subsection{``Universal'' Time}
+\begin{description}
+		\item[UTC] Coordinated Universal Time
+		\item[TAI] Standard definition of a second.
+\end{description}
+
+\subsubsection{External Synchronization}
+Synchronize with external source, such as UTC broadcast system.
+\subsubsection{Internal Synchronization}
+Synchronization among processors of the system.
+\begin{definition}
+		$\sum drift(C_i)=skew(\forall C_i)$
+\end{definition}
+We want to guarantee a precision $\Pi$. $S_{max}=\Pi$. Must synchronize every $\Delta t \leq
+\frac{S_{max}}{2} = \frac{\Pi}{2\rho}$. Where $\rho$ is the drift ($t'=t\pm
+\rho$).\\
+In reality, the alignment after synchronization is not perfect: The convergence
+function $\Phi$ denotes the offset of the time values immediately after
+resynchronization.\\
+$\Phi+S_{max}\leq \Pi$\\
+$\Delta t = \frac{\Pi - \Phi}{2\rho}$
+\subsection{Synchronization Algorithms}
+\begin{description}
+		\item[Centralizad] Time server node.
+				\begin{itemize}
+						\item Passive
+						\item Active
+				\end{itemize}
+		\item[Distributed]
+\end{description}
+\subsubsection{Christian's Algorithm}
+Centralized with passive time server. Periodically with period less than
+$\frac{\Pi - \Phi}{2\rho}$ each machine asks server for current time.
+\begin{itemize}
+		\item As first approximation $T_{rec}=C$ (We do not know $T_{trans}$)
+		\item $T_{rec}=C+\frac{T_1-T_0}{2}$ is better, but not perfect.
+		\item Our exact value is between: \\$T_{rec}^{min}=C+t_{min}$ and
+				$T_{rec}^{max}=C+(T_1-T_0)-t_{min}$.
+		\item The range is: $(T_1-T_0)-2t_{min}$
+\end{itemize} 
+\subsubsection{Berkeley Algorithm}
+\marginpar{\textit{Lecture 12\\2016-02-24}}
+Central algorithm with active time server. It also address the problem of
+possible faulty clocks.
+\begin{enumerate}
+		\item Server polls every maching
+		\item based on values time is set to average
+\end{enumerate}
+Problems:
+\begin{itemize}
+		\item Propagation times
+		\item 
+\end{itemize}
+
+\subsubsection{Distributed Clock Synchronization Algorithms}
+\begin{enumerate}
+		\item Each node sends out information concerning its own time
+		\item Each node calculates correction value from information from other
+				nodes of its own clock
+		\item Update clock
+\end{enumerate}
+Calculations at step two are:
+\begin{itemize}
+		\item Estimated delay of other nodes clock transmission
+		\item Average
+		\item Disregard obviously erroneous clocks
+\end{itemize}
+
+\subsubsection{Localized Averaging Algorithm}
+Only exchange information with nodes in neighbourhood. Each node has several
+neighbourhoods so that correct time can propagate through the network over time.
+
+\subsection{Adjusting Drifted Clocks}
+\begin{itemize}
+		\item If $T_{new} > T_{cur}$ is simple
+		\item If $T_{new} < T_{cur}$ we cannot simply move our clock back
+				\begin{itemize}
+						\item This can cause:
+								\begin{itemize}
+										\item Faulty timestamps
+										\item \textbf{It is not allowed to turn
+												back time!}
+								\end{itemize}
+						\item Instead the clock is ``slowed down'' until it
+								reaches a desired value. This is handled by the
+								software which handles the clock tick.
+								\begin{itemize}
+										\item This can also be done for the
+												first case
+								\end{itemize}
+				\end{itemize}
+\end{itemize}
+At each clock tick an increment of the internal clock value $\Theta$ is
+performed:
+\begin{align*}
+		\Theta&=\Theta+v \mbox{, v is the step by which the internal clock is
+		incremented}\\
+		T_{curr}:&=\Theta(1+a)+b  \mbox{, if no adjustment needed: } a=b=0
+\end{align*}
+After N tick the clock will be: $T_{new}+Nv$ and $T_{curr}=(\Theta +Nv)(1+a)+b
+\Rightarrow$
+\begin{align*}
+		a&=(T_{new} - T_{curr}/(Nv)\\
+		b&=T_{curr} - (1+a)\Theta
+\end{align*}
+\subsection{Precision Time Protocol (PTP)}
+Industry standard for high accuracy time synchronization. Accuracy less than
+$1\mu s$. Based on a centralized technique, master - slave relationship.
+\begin{itemize}
+		\item Time of master is reported to Slaves and they update their clocks.
+		\item Compensate for transmission and calculations delay
+\end{itemize}
+Four messages:
+\begin{itemize}
+		\item Sync: issued at master $T_1$ arrives at slave at $T_2$
+		\item Sync follow-up: carries the value of $T_1$
+		\item Delay request: issued at $T_3$ and arrives at master at $T_4$
+		\item Delay response: carries the value of $T_4$ back to the slave
+\end{itemize}
+\begin{question}
+		Why not put $T_1$ in sync message?\\
+		\textbf{Answer:} We can not afford keeping track of time.\\
+		\textbf{Solution:} Use specialized hardware to record $T_1$ at the exact
+		time the message leaves the master.
+\end{question}
+Calculate the master$\rightarrow$slave offset $\Theta_{MS}$.
+$T_2-T_1=\Theta_{MS}+\delta$, where $\delta$ is the transmission delay.
+\begin{align*}
+		T_2-T_1&=\Theta_{MS} + \delta\\
+		T_4-T_3&=\Theta_{MS} + \delta\\
+		\delta &= (T_2-T_1=T_4-T_3)/2
+\end{align*}
+Update the slave clock: $T_s=T_s-\Theta{MS} = T_s - (T_2-T_1)+\delta$.\\
+Phase 1 is done often, phase 2 more seldom. At each phase 2 a new $\delta$ is
+calculated. This is because $\Theta_{MS}$ is assumed to change more often than
+$\delta$.
+\subsubsection{Boundary clock switches}
+Acts as a slave to the grand master and a master to its own subset of slaves.
+\begin{itemize}
+		\item A Best Master Algorithm (BMA) determines master slave relations
+				depending on accuracies of clock. As result, a tree structure is
+				determined automatically, with the node containing the best
+				available clock - the grand master, as root
+\end{itemize}
+\begin{description}
+		\item[Software implementation] $10-100\mu s$
+		\item[Hardware implementation] $10-100ns$
+\end{description}
+\section{Real-time Communication}
+\begin{itemize}
+		\item Time triggered communication
+				\begin{itemize}
+						\item Flexible, predictable
+								\begin{itemize}
+										\item TDMA
+										\item Flex Ray
+								\end{itemize}
+				\end{itemize}
+		\item Event-triggered communication
+				\begin{itemize}
+						\item Unpredictable
+				\end{itemize}
+\end{itemize}
+\subsection{Event driven}
+\subsubsection{CAN Protocol}
+CAN is Carrier Sense Multiple Access/Collision Avoidance protocol.
+\begin{itemize}
+		\item Collisions are avoided by arbitration based on priorities assigned
+				to messages
+		\item CAN communication is based on frames
+\end{itemize}
+Uses dominant and recessive bit: 0 is dominant.
+\begin{itemize}
+		\item In CAN if several controllers transmit and at least one transmits
+				0, the bus is at 0; if all controllers write 1, the bus is at 1.
+		\item The message with the highest priority (lowest ID) will be sent
+\end{itemize}
+\subsubsection{Token ring}
+Buss is shared resource and a token is passed around. Same worst case waiting
+time for all nodes.
+\subsection{Time driven}
+\subsubsection{Time division multiple access (TDMA)}
+Time slots handed out to all nodes. The can only send when in these time slots.
+\textbf{Very predictable}, but bandwidth of bus is not fully utilized if nodes
+don't use their time slots.
+\subsubsection{FlexRay}
+FlexRay is a combination of two protocols, time and event triggered. Composed of
+static and dynamic phases. During static is is TDMA and dynamic it is CSMA/CA.
+\section{Exam}
+Total: 40p, Pass: 21p.\\
+There will not be any questions on the exam that has not been covered during the
+lectures.
+\end{document}

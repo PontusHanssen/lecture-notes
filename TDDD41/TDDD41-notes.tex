@@ -1,0 +1,426 @@
+%        File: TDDD41-lectures.tex
+%     Created: Wed Jan 27 10:00 AM 2016 C
+% Last Change: Wed Jan 27 10:00 AM 2016 C
+%
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\title{TDDD41: Datamining - Clustering and Association Analysis\\Lecture Notes}
+\author{Pontus Persson}
+\date{VT-2016}
+\begin{document}
+\maketitle
+\tableofcontents
+\section{Partition Methods}
+Partitions.
+No overlap, not empty, all should be in.
+k-mean - problem with outliers. Mitigate with metoids (PAM). CLARA, CLARANS?
+\section{Hierarchical Methods}
+\marginpar{\emph{Lecture 3\\2016-01-27}}
+Build clusters with sub-clusters, by merging or splitting clusters.
+\begin{description}
+	\item[AGNES] agglomatric
+	\item[DIANA] division
+\end{description}
+
+Complete-link clustering uses the longest distance of the objects inside a
+cluster. (the maximum path).\\
+Single-link uses the shortest distance instead.\\
+Build the tree graph of clustering and introduce a threshold to see how many
+clusters it gets.
+\subsection{AGNES}
+\begin{itemize}
+	\item Implemented in static analysis
+	\item Single-link
+\end{itemize}
+\subsection{DIANA}
+\begin{itemize}
+	\item Reverse order
+\end{itemize}
+Disadvantages - DO NOT SCALE! $O(n^2)$. Can not undo.
+
+\subsection{Birch}
+Balanced Iterative Reducing and Clustering using Hierarchies. 
+\begin{enumerate}
+	\item Scan DB to build an initial in-memory CF tree (a multi-level
+		compression of the data that tries to preserve the inherent
+		clustering structure of the data)
+	\item Use an arbitrary clustering algorithm to cluster the leaf nodes of
+		the CF-tree
+\end{enumerate}
+Clustering feature: $CF=(N,LS,SS)$ $LS=\sum X_i$, $SS=\sum X_i^2$ X is
+coordinates.\\
+EX: CF=(5,(16,30),(54,190)).
+\begin{description}
+	\item[Centroid] $\frac{LS}{N}$
+	\item[Add two clusters together] $CF_1+CF_2$
+\end{description}
+A CF-tree is a height balanced tree (all leaves at the same level). All nodes
+include CF, a nonleaf node in a tree stores the sums of the CFs of their
+children. Leaves stores the actual data.
+\begin{description}
+	\item[Branch factor] Maximum number of children
+	\item[threshold] max diameter of sub-clusters stored at the leaves
+\end{description}
+When creating the CF-tree, add element to same node if it fits.
+Otherwise ``split'', take the two object with the furthest distance, put one of
+them in the first cluster and the other one in the second (newly created)
+cluster. Add the third element in the cluster where the other object is the
+closest.
+As soon as the leaves are created, create a parent with the sum of its
+children's
+CFs. 
+\\Next element: start at top of tree, check centroid of children and choose
+the closest one.
+\begin{lstlisting}
+	If T requirement satisfied
+	then if data in cluster is not too large
+		Add data point
+	else
+		split
+\end{lstlisting}
+After creating the tree we can use for example PAM. Scales linearly. Handles
+only numeric data and is sensitive to the order of the data.
+
+\subsection{ROCK}
+Robust, Clustering using Links. Works on categorical data.\\
+\begin{definition}
+	$p_1$ and $p_2$ are neighbours\\
+	iff $sim(p_1,p_2)\geq t $ and $sim\in[0,1]$
+\end{definition}
+\begin{definition}
+	Link($p_1,p_2)$ is the number of common neighbours.
+\end{definition}
+\begin{definition}
+	$Link(C_i,C_j)=$ the number of cross links between clusters $C_i,
+	C_j$.\\
+	$\sum Link(p_i,p_j)$
+\end{definition}
+\begin{definition}
+	Goodness $G(C_i,C_j)$ when to merge $= Link(C_i,C_j)$ divided by the
+	expected number of cross links.
+\end{definition}
+\begin{itemize}
+\item	Drag random sample
+\item Hierarchical clustering with links using goodness
+\item Label data in disk, add other data to cluster with most neighbours.
+\end{itemize}
+\marginpar{\emph{Lecture 4\\2016-02-02}}
+Expected number of cross-links between $C_i$ and $C_j$.	= Expected number of
+links in $C_i\cup C_j - $ Expected number of links in $C_i -$ Expected number of
+links in
+$C_j$.\\
+Expected number of links in $C_i =$ number of data points in $C_i *$
+contribution of one data point to the ``links'' in $C_i$\\
+Assume $m_i$ data points in $C_i$. Assume each point in $C_i$ has $m_i^{f(t)}$
+neighbours. T is similarity threshold. $f(t)\leq 1$. For market data
+$f(t)=\frac{1-t}{1+t}$.\\
+Data point contributes to link when it is a common neighbour for two data
+points.
+\begin{itemize}
+	\item It is a common neighbour for:
+		\begin{itemize}
+			\item Its own neighbours
+		\end{itemize}
+	\item How many times is it a common neighbour?
+		\begin{itemize}
+			\item For each pair of its neighbours. $=m_i^{2f(t)}$
+		\end{itemize}
+\end{itemize}
+\begin{definition}
+	Expected number of links in $C_i = m_i^{1+2f(t)}$
+\end{definition}
+\begin{definition}
+	Expected number of links in $C_i\cup C_j = (m_i+m_j)^{1-2f(t)}$
+\end{definition}
+\subsection{CHAMELEON: Hierarchical Clustering Using Dynamic Modeling}
+\begin{enumerate}
+	\item Use a graph partitioning algorithm: cluster objects into a large
+		number of relatively small sub-clusters
+		\begin{itemize}
+			\item Based on k-nearest neighbour graph (connect two if
+				one is among k nearest neighbours)
+			\item Similarity on edges
+			\item Edge weight is density of region
+		\end{itemize}
+	\item Use an agglomerative hierarchical clustering algorithm:
+		\begin{itemize}
+			\item Edge cut: cut the lowest edges to create separated
+				graphs
+			\item Cut either until minimum number of edges in a
+				cluster. Maximum $1-2\%$ of data points in a
+				cluster
+			\item Merge if
+				\begin{itemize}
+					\item Closeness of clusters: avg
+						similarity between points in the
+						clusters that are connected to
+						both clusters.
+					\item Interconnectivity of clusters:
+						normalized sum of the weights of
+						the edges that connect nodes int
+						the clusters.
+						$\frac{2*EC_{C_i,C_j}}{EC_{C_i}-EC_{C_j}}$.
+						$EC_{C_i}=$ When dividing
+						$C_i$ in two approx. equal
+						parts.
+					\item Merge if both measurements are
+						above user=defined thresholds
+				\end{itemize}
+		\end{itemize}
+\end{enumerate}
+\section{Density-Based Clustering}
+\begin{itemize}
+	\item Eps: Max radius of the neighbourhood
+	\item MinPts: Min. number of points in an Eps-neighbourhood of that
+		point.
+\end{itemize}
+\begin{definition}
+	A point is density reachable from a point q if there is a chain of
+	points such that each are density reachable.
+\end{definition}
+
+\begin{definition}
+	A pont p is density-connected to a point q if there is a point o that is
+	density-reachable to both p and q.
+\end{definition}
+\begin{lemma}
+	p density-reachable to q $\Rightarrow$ p density-connected to q
+\end{lemma}
+\begin{lemma}
+	If p DDR for q $\Rightarrow$ p DR for q
+\end{lemma}
+\subsection{DBSCAN}
+\begin{itemize}
+	\item Put all density-connected points in a cluster.
+	\item Core points
+	\item Border points, connected to a core point, but not enough
+		neighbours to be a core point
+	\item Outliers, not connected to a core point and not enough to be a
+		core point
+\end{itemize}
+Algorithm:
+\begin{enumerate}
+	\item Select point p
+	\item Retrieve all density-reachable points
+	\item If p is core point, form cluster
+	\item If p is a border point, no point are density-reachable from p and
+		DBSCAN visits next point from the database
+	\item Continue untill all of the points have been processed
+\end{enumerate}
+\subsection{OPTICS}
+Order the data in such a way that you can look at different epsilons at the same
+time (preprocessing).\\
+\begin{definition}
+	Core distance is the smallest Eps needed between p and an object in its
+	eps-neighbourhood such that p would be a core object.
+\end{definition}
+\begin{definition}
+	Reachability distance of p and o\\
+	max(core-distance(o),d(o,p)) if o is a core object
+\end{definition}
+Algorithm:
+\begin{enumerate}
+	\item Select non-processed object o
+	\item Find neighbours (eps-neighbourhood)
+	\item Compute core distance for o
+	\item Mark o as processed
+	\item If o is not a core, restart at (1)
+	\item Put neighbours of o in Seedlist and order
+		\begin{itemize}
+			\item If neighbour n is not yet in Seedlist then add (n,
+				reachability from o) else if reachability from o
+				< current reachability, then update reachability
+				+ order Seedlist wrt reachability
+		\end{itemize}
+	\item Take new objec from SeedList with smallest reachability and go to
+		(2)
+\end{enumerate}
+You can then plot the new order (x) with eps (y) to see how many clusters and
+outliers you get for different eps.
+\marginpar{\textit{Lecture 6\\2016-02-16}}
+\section{Association rules}
+Look for patterns on form $antecedent \rightarrow consequent$. ``If something
+happens something else with happen with a certain probability''. Can be used for
+revenue maximization. Market basket analysis.
+\begin{definition}
+		Frequent itemset. A set of items bought together frequently
+\end{definition}
+Association rules can be produced from the frequent itemsets.
+\begin{definition}
+		Support $= p(X,Y) =$ probability that a transaction contains $X\cup Y$
+\end{definition}
+\begin{definition}
+		Confidence $= p(Y|X) = \frac{p(X,Y)}{p(X)}$
+\end{definition}
+High support, many cases. High confidence, rule is likely to be ``true''.
+\textbf{Goal:} Find all rules $X\rightarrow Y$ with at least minimum support and
+confidence.\\
+\textbf{Solution:}
+\begin{itemize}
+		\item Find all itemsets with minimum support (Apriori, FP grow
+				algorithms)
+		\item Generate all the rules with minimum confidence from the frequent
+				itemsets
+\end{itemize}
+
+\begin{theorem}
+		Any subset of a frequent itemset is frequent. Or, any superset of an
+		infrequent itemset set is infrequent
+\end{theorem}
+\subsection{Apriori algorithm}
+\begin{enumerate}
+		\item Scan db  once to get frequent 1-itemsets
+		\item Generate candidates to frequent (k+1)-itemsets from frequent
+				k-itemsets
+		\item Test the candidates against database
+		\item Terminate when no frequent or candidate itemsets can be generated
+\end{enumerate}
+\textbf{Create new candidates from candidates with the same prefix (all elements but the last
+one).}\\
+\begin{enumerate}
+		\item Self joining
+		\item Pruning (Prune candidates whose subsets are not frequent)
+\end{enumerate}
+
+\begin{lemma}
+		All frequent (k+1)-itemsets are in $C_{k+1}$
+\end{lemma}
+\begin{proof}
+		$k=0, L_1\subseteq C_1$ Trivial\\
+		Hypothesis: $L_s\subseteq C_s \forall s\leq k$\\
+		Show that it wont be removed in self-join and pruning.
+\end{proof}
+\subsubsection{Produce rules}
+Generate all rules on the form $a\rightarrow l-a$ with minimum confidence from a
+large itemset $l$.\\
+If a subset $a\subseteq l$ does not generate a rule,  then neither does any
+subset of $a$.\\
+Start with rules with a large antecedent and try to make new rules with smaller
+antecedents of subsets of ``good rules''.\\
+Problems with Apriori:
+\begin{itemize}
+		\item Too many candidates to generate
+		\item Each candidate implies expensive operations
+\end{itemize}
+\marginpar{\emph{Lecture 7\\2016-02-17}}
+\subsection{Frequent pattern growth algorithm}
+\begin{enumerate}
+		\item Scan db once, record items as the frequent 1-itemsets.
+		\item Sort itemset in frequency descending order. (f-list)
+		\item Create tree
+				\begin{enumerate}
+						\item First transaction is put as left children
+						\item Put next transaction in tree and create minimum
+								new branches. Mark nodes with number of
+								transactions it represents
+				\end{enumerate}
+		\item Also create header table linking all items to their place is the
+				tree. If there are multiple instances of an item in the tree,
+				the nodes should keep track of each other.
+		\item For each frequent item in the header table
+				\begin{itemize}
+						\item Traverse the tree by following the corresponding
+								link
+						\item Record all prefix paths leading to the item. This
+								is the item's conditional pattern base
+				\end{itemize}
+		\item For each conditional pattern base, Start the process again
+				recursively
+\end{enumerate}
+\begin{definition}
+		$lift(X,Y) =
+		\frac{support(X,Y)}{support(X)support(Y)}=\frac{p(Y|X)}{p(Y)}$
+		\begin{itemize}
+				\item $lift >1$ positive correlation
+				\item $list <1 $ negative correlation
+				\item $lift = 1$ independent
+		\end{itemize}
+\end{definition}
+\marginpar{\textit{Lecture 8\\2016-02-23}}
+\subsection{Constrained frequent itemset mining}
+Only find rules that apply to a specified constraint. \\
+A Constraint C(.) is:
+\begin{description}
+		\item[Monotone] If $C(A)$ then $C(B) ,\forall A\subseteq B$
+		\item[Antomonotone] 
+				\begin{itemize}
+						\item
+						\item If $C(A)$ then $C(B) ,\forall B\subseteq A$ 
+						\item If not $C(B)$ then not $C(A)$
+				\end{itemize}
+\end{description}
+Example:
+\begin{align*}
+		sum(S.price) &\geq v \mbox{ Is monotone}\\
+		sum(S.price &\leq v \mbox{ Is anti monotone}
+\end{align*}
+Constraints that are not monotone or anti monotone can sometimes be converted.
+\subsubsection{Apriori algorithm with constraints}
+You could remove frequent itemsets not matching the constraints with a simple
+brute force approach. 
+\begin{itemize}
+		\item If anti monotone, cross off items early to not do any extra work.
+				(Prune search space)
+		\item If monotone, does not prune, but avoids constrains checking.
+				Superset of constraint OK is always OK.
+\end{itemize}
+\subsubsection{FP grow algorithm and constraints}
+With anti monotone constraints:
+\begin{itemize}
+		\item Remove items that do not satisfy the constraint
+		\item If the conditioning itemset $\alpha$ does not satisfy the
+				constraint, then do not generate $\alpha$ nor its conditional
+				database.
+		\item Let $\beta$ denote the frequent items in the conditional database
+				database of $\alpha$. If $\alpha \cup \beta$ satisfies the
+				constraint, then do not check the constraint in the conditional
+				database of $\alpha$.
+\end{itemize}
+With monotone constraints:
+\begin{itemize}
+		\item If the conditioning itemset $\alpha$ satisfies the constraint,
+				then do not check the constraint in its conditional database.
+\end{itemize}
+\subsection{Constraints}
+\begin{itemize}
+		\item Average is neither monotone nor anti monotone
+		\item Convertible monotone
+				\begin{itemize}
+						\item If there exists an item order R such that:
+								\begin{itemize}
+										\item If $C(A) \Rightarrow C(B), \forall
+												A,B$ respecting R such that A is
+												a suffix of B.
+								\end{itemize}
+						\item E.g. $avg(S.Price) \geq v$ with respect to
+								decreasing price order
+				\end{itemize}
+		\item Convertible anti monotone
+				\begin{itemize}
+						\item It there exists an item order R such that:
+								\begin{itemize}
+										\item If $C(A) \Rightarrow C(B), \forall
+												A,B$ respecting R such that B is
+												a suffix of A
+										\item Or if $\lnot C(B) \Rightarrow
+												\lnot C(A), \forall A,B$
+												respecting R such that B is a
+												suffix of A
+								\end{itemize}
+						\item E.g. $avg(S.Price)\geq v$ with respect to
+								increasing price order
+				\end{itemize}
+\end{itemize}
+\begin{definition}
+		If a constraint is \textbf{both} convertible monotone and convertible
+		anti monotone, it is \textbf{strongly convertible}.
+\end{definition}
+\marginpar{\textit{Lecture 9\\2016-02-24}}
+
+\end{document}

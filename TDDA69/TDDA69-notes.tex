@@ -1,0 +1,183 @@
+%        File: TDDA69-lectures.tex
+%     Created: Tue Jan 26 01:00 PM 2016 C
+% Last Change: Tue Jan 26 01:00 PM 2016 C
+%
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\title{TDDA69: Program and Data Structures\\Lecture Notes}
+\author{Pontus Persson}
+\date{VT-2016}
+\begin{document}
+\maketitle
+\tableofcontents
+\section{Imperative programming and data structures}
+\marginpar{\emph{Lecture 2\\2016-01-26}}
+\subsection{Imperative programming}
+Programming where you express how computations are executed (cooking recipe).
+Examples: C/C++, Pascal\\
+Most hardware follow the Con Neumann architecture, which is imperative.
+Many early languages were basically abstractions of assembly (Fortran, C).\\
+Non-Von Neumann architecture: FPGA.\\
+\subsubsection{Statements}
+A statement is executed by the interpreter to preform an action.
+\begin{itemize}
+	\item Assignment expressions
+	\item Expression statements
+	\item Conditional statements
+	\item Iterative statements (loops)
+\end{itemize}
+If, elif and else is part of the same statement, with if being the header of the
+statement. In js, if and else if are two separate statements.\\
+Flase in pyhton: False, 0 '', None, 0.0, [], \{\}, ().\\
+When using ranges, always express as $a\leq i < b$. Where $a=0,b=length$.
+
+\textbf{Strengths:}
+\begin{itemize}
+	\item Close to machine 
+	\item easy to understand 
+	\item More efficient than functional
+	\item Popular
+	\item States
+\end{itemize}
+\textbf{Disadvantages}: Unexpected behaviour from states, data races.
+\subsection{Data structures}
+Big performance differences using vectors, deque and lists when inserting at
+front or back with different data sizes. Sometimes allocating memory is more
+expensive, sometimes moving data is more expensive.\\
+Also, access times and sorting times differ.
+\begin{description}
+	\item[Arrays] Random access, efficient unless resize
+	\item[List] Access through iteration, O(1) for insertion
+\end{description}
+\subsubsection{Tree}
+Implement using an array, first element is the value, the next element is an array with children.
+Tree traversal using a listener: call entering function, recursive call to all
+children, then call exiting function.\\
+Tree traversal using a visitor. Recursive call to all children, return depth.
+\\Tree recursion arises when executing recursive function that makes multiple
+recursive calls. Example: fib(n).
+
+\subsubsection{Dictionary}
+In many dynamic object oriented languages object are dictionaries. Found in
+obj.\_\_dict\_\_.
+
+\marginpar{\emph{Lecture 4\\2016-02-03}}
+\section{Evaluation}
+\subsection{Substitution Model}
+Applicative order:
+\begin{itemize}
+	\item Evaluate the arguments and then apply.
+\end{itemize}
+Normal order:
+\begin{itemize}
+	\item Fully expand to primitive operations, then reduce
+\end{itemize}
+\begin{itemize}
+	\item Substitution is based on the notion that symbols are names for
+		values
+\end{itemize}
+\subsection{Writing an evaluator}
+\subsection{Evaluation Model}
+\section{VM and Bytecode}
+\begin{verbatim}
+LOAD_MEMBER [VARNAME]
+/* Is equivalent to */
+PUSH [VARNAME]
+LOAD ``FUNC_LOAD''
+CALL 2 /* VARNAME, OBJECT */
+\end{verbatim}
+
+\begin{verbatim}
+PUSH 1
+PUSH 2
+ADD
+/* PUSHES 3 to the stack */
+
+LOAD ``a''
+PUSH 2
+SUB
+/* Pushes a-2 to the stack /*
+
+DECL ``a'' # var a;
+PUSH 1
+STORE ``a'' # a=1
+
+PUSH 2
+LOAD ``a''
+ADD
+STORE ``a''
+/* a += 2 */
+
+LOAD ``c''
+LOAD ``a''
+STORE_MEMBER ``b''
+/* a.b = c */
+
+
+PUSH 1
+LOAD ``func''
+CALL 1
+/* func(1) */
+
+
+PUSH 2
+PUSH 1
+LOAD ``func''
+CALL 2
+/* func(1,2) */
+
+PUSH ``Hello. world!''
+LOAD ``console''
+LOAD_MEMBER ``log''
+CALL 1
+/* console.log(``Hello, world!'') */
+
+
+LOAD ``a'' 			# 1
+NOT					# 2
+IFJMP 8				# 3
+PUSH ``test''		# 4
+LOAD ``console''	# 5
+LOAD_MEMBER ``log''	# 6
+CALL 1				# 7
+/* if(a) { console.log('test') }
+
+LOAD ``a''
+IFJMP if
+/* Else block */
+JMP cont
+/* If block */
+/* Continuation */
+/* if(a){console.log(``hello'')} else { console.log(``world'')} */
+
+LOAD ``a''
+NOT
+IFJMP 6
+LOAD ``a''
+PUSH 1
+SUB
+STORE ``a''
+JMP 1
+/* while(a){a-=1} */
+
+DELC ``a''
+PUSH 0
+STORE ``a''
+LOAD ``a''
+PUSH 10
+INFERIOR
+NOT
+IFJMP  # after loop
+/* loop body */
+LOAD ``a''
+PUSH 1
+ADD
+STORE ``a''
+JMP # First LOAD
+/* for(var a=0; a<10; a+=1){ console.log(a) } */
+\end{verbatim}
+\end{document}
+

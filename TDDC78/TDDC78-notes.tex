@@ -1,0 +1,138 @@
+%        File: TDDC78-lecture-notes.tex
+%     Created: Mon Apr 04 08:00  2016 C
+% Last Change: Mon Apr 04 08:00  2016 C
+%
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{hyperref}
+\author{Pontus Persson}
+\title{Lecture Notes\\TDDC78}
+\date{VT-16}
+\begin{document}
+\maketitle
+\tableofcontents
+
+\marginpar{Lecture 1\\2016-04-04}
+\section{Parallel Computing - Motivation}
+Very large number of FLOPS. Used for example weather predictions. 10 day forecast
+requires $10^{15}$ FLOPS.
+\\Grand challenges:
+\begin{itemize}
+    \item Chemistry
+    \item Physics
+    \item VR
+    \item Bioinformatics
+\end{itemize}
+Single processor computers cannot provide such massive computation power
+\begin{itemize}
+    \item Power/Cooling issue (freq. limited)
+    \item Limited automatic parallelism (eg. at instruction level)
+\end{itemize}
+It is more efficient to use multiple cores instead of simply over-clocking a single core.
+Given that the application can be parallelized efficiently.
+
+\section{Parallel Computer Architecture Concepts}
+\begin{description}
+    \item[Multiprocessors] Tightly connected processors (eg shared memory)
+    \item[Multicomputer] Loosely connected (eg distributed memory)
+\end{description}
+\subsection{Control Structure}
+\begin{description}
+    \item[SISD] single instruction stream, single data stream\\ sequential
+    \item[SIMD] single instruction stream, multiple data streams\\
+        Common clock, common program memory, common program counter
+        \begin{itemize}
+            \item VLIW processors
+            \item traditional vector processors
+            \item traditional array computers
+            \item SIMD instructions on wide data words (e.g. Altivec, SSE, \ldots)
+        \end{itemize}
+    \item[MIMD] multiple instruction streams, multiple data streams. Each processors has its own program counter
+    \item[Hybrid forms]
+\end{description}
+
+\subsection{Memory organization}
+Memory access is a bottleneck in computing, caches are valuable!
+\begin{description}
+    \item[Distributed] No direct access, but through inter-connection network
+        (message passing)
+    \item[Shared] Direct access to memory from each processor via e.g. a bus.
+\end{description}
+Most common today in HPC: Hybrid memory systems. Distributed memory systems with
+shared memory nodes. Clusters of servers with multicore CPUs.
+
+\subsection{Distributed Memory Architectures}
+\subsubsection{Array Computers}
+\begin{itemize}
+    \item SIMD
+    \item Channel based, synchronous communication to neighbours
+    \item Out of fashion, but comeback as SIMD accelerator arrays on chip.
+\end{itemize}
+
+\subsubsection{Multicomputers}
+\begin{itemize}
+    \item MIMD, async.
+    \item may consist of standard PC components
+    \item Very successfull
+\end{itemize}
+Data structures must be distributed since remote memory access is very expensive.
+
+\section{Interconnection Networks}
+\begin{description}
+    \item[Degree] max nmbr of neighoiurs
+    \item[Diameter] max sitance in hops
+    \item[Connectivity] fault torelance
+    \item[Bandwidth] max bytes/sec
+    \item[throughput] max bytes/sec of all connections are active
+\end{description}
+We can:
+\begin{itemize}
+    \item Connect processors with each other (DMS, dynamic)
+    \item Connect processors with memory modules (SMS, static)
+\end{itemize}
+
+Classification:
+\begin{itemize}
+    \item Direct/Static interconnection networks
+    \item Direct networks with hardware routers
+        \begin{itemize}
+            \item Offload processors from most communication work
+        \end{itemize}
+    \item Switches/Dynamic interconnection networks
+\end{itemize}
+
+\subsection{Simple topology}
+\begin{description}
+    \item[Bus] 1 wire - bus saturated with many processors (Ethernet)
+    \item[Linear Array] Like a linked list of processors.
+    \item[Ring] Token ring
+    \item[2D grid]
+    \item[Torus] 2D grid + ring mixed
+    \item[3D grid]
+    \item[3D torus] 3D grid + torus mix
+    \item[Tree] represent as tree, root processor is bottleneck
+\end{description}
+Could also use fat trees - trees with nodes interconnected to all parent level nodes.
+
+\subsubsection{Hypercube}
+A k-dimensional hypercube $C_k$ has $2^k$ nodes (connections). 
+Inductive definition $C_0=$ one elem, $C_1=$line, $C_2=$square, $C_3=$cube, \ldots\\
+$C_k=$two connected $C_{k-1}$ hypercubes.
+\begin{itemize}
+    \item Each node has a degree k (nmbr of direct neighbours)
+    \item $\forall (p_i,p_j) \exists$ path of lengths $\leq k$ hops\\
+        Shortest path $p_i \rightarrow^* p_j$ has length $HD(p_j,p_i)=$ \# 1-bits in 
+\end{itemize}
+\subsubsection{Crossbar}
+Links every input to every output using one switch per connection. Total $n^2$ switches.
+
+\begin{itemize}
+    \item Very flexible
+    \item High throughput
+    \item Expensive
+    \item Not scalable
+\end{itemize}
+Sometimes used in combination with other networks. Crossbars of 32 nodes connected
+ with ring network.
+\end{document}

@@ -1,0 +1,394 @@
+\documentclass[course, english]{Notes}
+
+\title{Software Security}
+\subject{CS}
+\author{Pontus Persson}
+\email{ponpe412@student.liu.se}
+\speaker{Ulf Karg\'{e}n}
+\date{04}{11}{2015}
+\dateend{15}{01}{2016}
+\place{LiTH}
+
+\begin{document}
+
+\lecture{04}{11}{2015}
+\section{Introduction}
+\subsection{SQL Slammer}
+\begin{itemize}
+	\item One UDP package to MSSQL 2003 allowed attacker to run arbitrairy code
+	\item 90\% of machines infected in 10min
+\end{itemize}
+\subsection{Stux}
+\begin{itemize}
+	\item First cyber warfare weapon
+	\item 4 windows zero-days
+	\item Targetet centrifuges in Iranian nuclear enrichment facility
+	\item Reprogrammed centrifuges to spin them out of control and intercepted comms to tell operators everything was ok
+\end{itemize}
+\subsection{Software Security today}
+\begin{itemize}
+	\item 10-15 years ago: most attacks "for fun"
+	\item Today: almost exclusively motivated by political or economical gains
+	\item Almost exclusively targets client and not server software
+	\item PDF-readers, MS Office, etc. Are viable targets
+\end{itemize}
+\subsection{Common types of defects}
+\begin{itemize}
+	\item Buffer overflows
+	\item Race conditions
+	\item Encofing bugs
+	\item Double free
+	\item \ldots
+\end{itemize}
+
+
+\section{Organization}
+\begin{itemize}
+	\item 10 lectures
+	\item 3 labs
+		\begin{itemize}
+			\item Pong
+			\item Static analysis
+			\item Web security
+		\end{itemize}
+\end{itemize}
+
+\lecture{05}{11}{2015}
+
+\section{Secure SW developent}
+Security should not be patched in later. Software considerations must permeate all phases of the software developemnt cycle.
+\\ Insert security stuff like pen-test, risk analysis and static analysis in all parts of development.
+\subsection{Security requirements}
+\begin{itemize}
+	\item Reqa are gathered during the initial phase of the software development life cycle
+	\item Look at missuse cases
+\end{itemize}
+\subsubsection{Missuse cases}
+\begin{itemize}
+	\item Identify threats and countermeasures
+	\item Identify how we do \textbf{not} want our program to be used
+\end{itemize}
+Examples in slides.\\
+Goes well together with risk analysis.
+
+\subsection{Risk analysis}
+\subsubsection{CORAS}
+\begin{enumerate}
+	\item Experts and clients decide what system to protext. Draw lo-fi
+		image
+	\item Define assets, high-level risk analysis and communication flow
+	\item Prioritize assets, create consequence scale and likelihood values.
+		Create risk evaluation matrix
+	\item Create threat diagrams
+	\item Estimate risks in the diagram (consequence and likleihood)
+	\item Risk evaluation, estimates are confirmed or adjusted
+	\item Risk treatment
+\end{enumerate}
+\subsubsection{Attack trees}
+Risk evaluation but from the attackers POV. Very easy, see more in the slides.
+
+\subsection{Software development Lifecycle (SDL)}
+The team must complete 16 mandatory secuity activities to comply with the MS SDL
+process.
+
+\subsubsection{Pre-SDL}
+Education
+\begin{itemize}
+	\item Threat modeling
+	\item Secure cofing
+	\item Privacy
+\end{itemize}
+\subsubsection{Requirements}
+\begin{itemize}
+	\item Operational envitonment
+	\item Quality gates (no compiler warnings when commiting codes, X number
+		of manual CR's) to go to next phase
+	\item Bug bars (no known critical bugs left in system) overall
+	\item What needs to be pentested
+	\item Privacy rating
+		
+\end{itemize}
+
+\subsubsection{Design}
+\begin{itemize}
+	\item Attaack surface reduction
+	\item Threat modeling
+\end{itemize}
+
+\subsubsection{Implementation}
+\begin{itemize}
+	\item Publish list of approved tools
+	\item List to be approved by external security advisor
+	\item Teams should analyze all functions and APIs that will be used in
+		conjunction with the sw development and prohibit those unsafe
+	\item All code should be scanned for prohibited functions and APIs
+	\item Static analysis of code should be performed
+\end{itemize}
+
+\subsubsection{Verification}
+\begin{itemize}
+	\item Dynamic analysis (monitor problems with memory corruption, user
+		privilege issues etc.)
+	\item Fuss testing (deliberitely introduce malformed or random data to
+		an app during dynamic analysis
+	\item Update threat model and attack surface analysis, account for any
+		design or implementation changes to the system.
+\end{itemize}
+
+\subsubsection{Release}
+\begin{itemize}
+	\item First point of contact. On call contacts with decision making auth
+		avaliable within 24 hours.
+	\item Security service plans for code inherited from other groups
+	\item Same goes for 3rd party libraries
+\end{itemize}
+
+\subsubsection{Final security review}
+\begin{itemize}
+	\item Independent panel goes through everything
+		\begin{itemize}
+			\item Pass FSR - g2g
+			\item Pass - g2g but fix problems in near future
+			\item Not pass - go pass to adress SDL reqs that is not
+				fullfilled
+		\end{itemize}
+	\item If privacy rating P1, independent review
+	\item Everything needs to be archived for future projects
+\end{itemize}
+
+\subsection{Secure design patterns}
+Categorized by abstraction, design or implementation.
+\begin{description}
+	\item[Architecure level] Focus on high level allocation of responces (Ex
+		priv.sep.
+	\item[Design level] Internal design och signle component (sec factory)
+	\item[Implementation level] Secure logger etc.
+\end{description}
+
+\subsubsection{Privilege separation}
+Reduce the amount of code that is run as a priviledged user.
+
+\subsubsection{Secure factory}
+Seperate the security dependent logic incolved in creating an ovject from the
+basic functionalitu of the created object
+
+\subsubsection{Secure chain of responsibility}
+Decouple the logic that determines pivileges from the portion of the program
+that is requesting the privileges.
+
+\subsubsection{Secure logger}
+Prevent attacker from gathering potentially useful information about the system
+from system logs or editing logs.
+
+\subsubsection{Clear sensitive information}
+Is it possible that sensitive information has been stored in reusable resources
+after a user session or applicatin has run.
+
+\lecture{06}{11}{2015}
+
+\section{Vulnerabilities in C/C++}
+Problem with programs that compile to machine code. 
+\subsection{Assembly language primer}
+\begin{itemize}
+	\item All processes see 4GB of private continuóus virtual memory
+	\item The stack is located high and grows down
+	\item Main exe (text) nad its Data and BSS segment is located in low
+		memory
+	\item The heap i located above Text, Data and BSS. Grows upwards.
+		\begin{itemize}
+			\item Used for dynamically allocated memory (malloc,
+				new)
+		\end{itemize}
+	\item x86 is a little-endian architecture, First byte of e.g. a 4-byte
+		word is the least significant byte.
+\end{itemize}
+
+\lecture{12}{11}{2015}
+\subsubsection{More vulnerabilities}
+\begin{itemize}
+	\item Integer overflow Wrap-arounds cause length check to pass
+	\item Type conversions, usigned to signed, int to short, etc.
+\end{itemize}
+\subsection{Non memory corruption vulnerabilities}
+
+\begin{itemize}
+	\item Race conditions (time between access check and write)
+	\item Out of bounds reads (heartbleed)
+\end{itemize}
+
+\lecture{13}{11}{2015}
+
+\section{Software Engineering Reviews}
+Inspections are the best way to find defects in code and other documents. At
+least looking at the number of anomalies found.\\
+Used for:
+\begin{itemize}
+	\item Find defects
+	\item Training
+	\item Communication
+	\item Hostage taking
+\end{itemize}
+
+\subsection{Fagan review}
+\subsubsection{Process}
+\begin{itemize}
+	\item Initial
+		\begin{itemize}
+			\item Check criteria
+			\item Plan
+			\item Overview
+		\end{itemize}
+	\item Individual
+		\begin{itemize}
+			\item Preparation, or
+			\item Detection
+		\end{itemize}
+	\item Group
+		\begin{itemize}
+			\item Detection, or
+			\item Collection
+			\item Inspection record
+			\item Data collection
+		\end{itemize}
+	\item Exit
+		\begin{itemize}
+			\item Change
+			\item Follow-up
+			\item Document \& data handling
+		\end{itemize}
+\end{itemize}
+
+\subsubsection{Inspection record}
+\begin{itemize}
+	\item Identification
+	\item Location
+	\item Description
+	\item Decision for entire document
+		\begin{itemize}
+			\item Pass w/ changes
+			\item Reinspect
+		\end{itemize}
+\end{itemize}
+\subsubsection{Data collection}
+\begin{itemize}
+	\item Number of defects
+	\item Classes of defects
+	\item Severity
+	\item Other statistics
+\end{itemize}
+\lecture{18}{11}{2015}
+
+\section{Static Analysis}
+Static program analysis analyses computer programs statically, without executing
+them.
+\begin{itemize}
+	\item No need to run, before deployment
+	\item No need to restrict to single input for testing
+	\item Usefull in compiler optimization, finding security analysis
+	\item Ofter on source code, sometimes on object code
+	\item Usually highly automated (w/ possibility of some user
+		interraction)
+\end{itemize}
+A sounds analysis algorithm is sound in the case where each time it reports the
+program is safe wet. some errors, then the original program is indeed safe wrt.
+those errors. An algorithm is complete if it each time its given a program that
+is safe with some errors and it reports it save with those errors.
+\\
+We try to approximate all possible configurations, this gives us an over- or
+under approximation.
+\begin{itemize}
+	\item A sounds analysis cannot give false negatives
+	\item A complete analysis cannot give false positives
+\end{itemize}
+\subsection{Syntactic Analysis}
+\subsubsection{Splint}
+Splint is neither sound nor complete. Kind of a fancy version of grep. Looks for
+``dangerous'' patterns.
+\subsection{Abstract interpretation}
+Suppose you have a program analysis that captures the progra behaviour but that
+is inefficient or uncomputable. You want an analysis that is efficient but that
+also can over-approcimate all behaviours of the program.
+\\
+Consider a language with multiplication, addition and subtraction of integers.
+If you are only interested in the sign of variable, you can associate
+$\set{+,0,-}$ for each configuration instead of $\mathcal{Z}$. \\\
+For an integer variable, the set of concrete values at a location is in
+$\mathcal{P}(\mathcal{Z})$. $S_1 \sqsubseteq S_2$ means that $S_1$ is more
+precise than $S_2$. Example; $\mathcal{P}(\set{0,+}) \sqsubseteq
+\mathcal{P}(\set{+,0,-})$
+\subsubsection{Lattice}
+A pair $(Q, \leq)$ is a lattice if each pair p,q in Q has
+\begin{itemize}
+	\item a greatest lower bound $p \sqcap q$ with $\leq$ (meet) and
+	\item a least upper bound $p \sqcup q$ with $\leq$ (join)
+\end{itemize}
+\subsubsection{Galois connections}
+$(\alpha,\gamma)$\\
+Concretization function $\gamma$, abstraction function $\alpha$. Eg, S is all
+prime numbers. $\alpha(S)
+= \set{+}=A$ and $\gamma(A)=\set{i|i>0}$. \\
+Also, $S\sqsubseteq_c \gamma \circ
+\alpha(S)$ and $\alpha \circ \gamma(A) \sqsubseteq_a A$.
+\\
+\lecture{19}{11}{2015}
+\subsection{Symbolic execution}
+Symbolic execution testing is complete, but not sound.
+\begin{description}
+	\item[SMT]Satisfiability Modulo Theory
+\end{description}
+Similar to SAT solvers, SMT solvers work on ranges and not just boolean values.
+\begin{itemize}
+	\item Most common form of software validation
+	\item Explores only one possible execution at a time
+	\item For each new value, run a new test
+	\item On 32-bit machine an integer equals test requires $2^{32}$
+		different tests
+	\item The ida in symbolic testing is to associate \textbf{symbolic
+		values} to the variables
+	\item Along the path, maintain a Path Constrain (PC) and symbolic state
+		($\sigma$)
+	\item PC collects constrains on variable's values along a path
+	\item $\sigma$ associates variables to symbolic expressions
+	\item We get concrete values if PC i satisfiable
+	\item Negate a condition in the path constraint to get another path
+\end{itemize}
+
+\subsection{Hoares and deductive reasoning}
+Total correctness requires that:
+\begin{itemize}
+	\item If the pre-condition holds
+	\item then the implementation terminates
+	\item after termination, the post-condition holds
+\end{itemize}
+A Hoare triple $\set{P}$ stmt $\set{R}$ consists in:
+\begin{itemize}
+	\item a predicate pre-condition $P$
+	\item an instruction stmt
+	\item A predictate post-condition $R$
+\end{itemize}
+\subsubsection{Weakest precondition}
+\begin{itemize}
+	\item if $\set{P} stmt \set{R}$ and $P' \Rightarrow P$ s.t. $\set{P'}
+		stmt \set{R}$, then P is the weakest precondition of R with stmt
+		written wp(stmt, R)
+\end{itemize}
+$wp(x=x+1,x>1,x\geq 1)=(x\geq 0$.
+\begin{itemize}
+	\item $wp(x=E,R)=R[x/E]$, i.e. replace each occurence of x in R by E.
+\end{itemize}
+For instance
+\begin{align*}
+	&wp(x=3,x==5)=(x == 5)[x/3]=(3 == 5) == false \\
+	&wp(x=3,x>0)=(x>0)[x/3]=(3 >0) == true \\
+	&wp(stmt;stmt',R) = wp(stmt, wp(stmt', R))
+	\label{Weakest precondition}
+\end{align*}
+In order to establish $\set{P} (while(B)do \set{ stmt }) \set{R}$, we need to fins
+an invariant $Inv$:
+\begin{itemize}
+	\item $P \Rightarrow Inv$
+	\item $\set{ Inv && B }stmt \set{ Inv }$
+	\item $(Inv&&!B) \Rightarrow R$
+\end{itemize}
+
+\end{document}
