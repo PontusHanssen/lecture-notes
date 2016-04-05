@@ -74,15 +74,15 @@ shared memory nodes. Clusters of servers with multicore CPUs.
 \begin{itemize}
     \item MIMD, async.
     \item may consist of standard PC components
-    \item Very successfull
+    \item Very successful
 \end{itemize}
 Data structures must be distributed since remote memory access is very expensive.
 
 \section{Interconnection Networks}
 \begin{description}
-    \item[Degree] max nmbr of neighoiurs
-    \item[Diameter] max sitance in hops
-    \item[Connectivity] fault torelance
+    \item[Degree] max number of neighbours
+    \item[Diameter] max distance in hops
+    \item[Connectivity] fault tolerance
     \item[Bandwidth] max bytes/sec
     \item[throughput] max bytes/sec of all connections are active
 \end{description}
@@ -135,4 +135,156 @@ Links every input to every output using one switch per connection. Total $n^2$ s
 \end{itemize}
 Sometimes used in combination with other networks. Crossbars of 32 nodes connected
  with ring network.
+
+ \section{Shared memory}
+\marginpar{Lecture 2\\2016-04-05}
+ \begin{itemize}
+     \item SMP (Symmetric SMS) true shared
+     \item SMP with cahces
+     \item Distributed Shared Memory (DMS/NUMA) emulated on top of distributed memory
+ \end{itemize}
+ \section{Cache}
+ Small, fast memory between processor and main memory.
+ \begin{description}
+     \item[cache hit] accessed work is in cache
+     \item[cache miss] not in cache
+     \item[cache line] holds a copy of a block of adhjacent memory words
+         \begin{itemize}
+             \item size: from 16 bytes and upwards
+         \end{itemize}
+ \end{description}
+Time to access n bytes: $t(n)=\beta+\alpha n$. Depending on $\alpha$ and $\beta$,
+accessing more bytes might be more efficient.
+\\Mapping memory blocks to cache lines:
+directly mapped $\forall j\exists!i: B_j\rightarrow C_i$ namely where\ldots
+\begin{itemize}
+    \item Spatial access locality
+        \begin{itemize}
+            \item access also other data in same cache line
+        \end{itemize}
+        \item temporal access locality
+            \begin{itemize}
+                \item access same location multiple times
+            \end{itemize}
+        \item HW-controlled cache line replacement
+            \begin{itemize}
+                \item LRU - least recently used - dynamic adaptivity of cache contents
+            \end{itemize}
+        \item Suitable for applications with high or dynamic data locality
+\end{itemize}
+\subsection{Cache misses}
+\begin{description}
+    \item[Cold miss] data was never in cache
+        \begin{itemize}
+            \item Usually unavoidable
+        \end{itemize}
+    \item[Capacity miss] data was evicted earlier when cache capacity was exceeded
+        \begin{itemize}
+            \item Might be partly avoided
+        \end{itemize}
+    \item[Associativity miss] data was evicted earlier because of cache set conflict
+\end{description}
+\subsection{Memory update strategies}
+\begin{itemize}
+    \item Write-through
+        \begin{itemize}
+            \item[+] consistency
+            \item[-] slow, write stall
+        \end{itemize}
+    \item Write-back
+        \begin{itemize}
+            \item[+] update only cache entry
+            \item[+] write back to memory only when replacing cahce line
+            \item[+] write only on modified, uses dirty bit for each cache line
+            \item[-] However, not consistent
+        \end{itemize}
+\end{itemize}
+These two can be combined. L1 cache uses write-though and L2 uses write-though
+for example.
+\subsection{Cache coherence and memory consitency}
+A cache management system is called coherent if a read access to a shared memory
+location
+always reproduces the value coresponding to the  most recent write acces to x.
+\\
+A memory system is consistent (at a certain time)\ldots
+
+Three conditions for coherence.
+\begin{enumerate}
+    \item Each processor sees its own writes and reads in program order
+    \item The written value is eventually visible to all processors
+    \item All processors see one total order of all write accesses
+\end{enumerate}
+\subsection{Cache coherence protocols}
+\begin{itemize}
+    \item Write-update protocol
+        \begin{itemize}
+            \item At write access, all other copies in the system must be
+                updated as well. Update must finish before next access
+        \end{itemize}
+    \item Write-invalidate protocol
+        \begin{itemize}
+            \item Before modifying a copy in the cache all copies in the system
+                must be declare as invalid
+        \end{itemize}
+\end{itemize}
+Either propagate the message after update or make sure you are the only one
+able to write and all other processes read from me. Most SMPs use \textbf{write-invalidate}
+\\
+Updating/invalidating is straightforward on bus-based systems. otherwise a directory
+based mechanism is necessary.
+\subsubsection{Write-invalidate in detail}
+Implementation: multiple-readers-single-writer sharing.
+\\Write attempt to read-only-mode data x:
+\begin{enumerate}
+    \item Broadcast invalidation to all other copies of x
+    \item Await acks
+    \item Any processor attemting to access x is blocked if a writer exists
+    \item Eventually, control is transferred from the writer
+        and other accesses may take place once the update has been sent
+\end{enumerate}
+\begin{itemize}
+    \item[+] parallelism (multiple readers)
+    \item[+] updates only propagated when needed
+    \item[+] several updates can take place before communication is necessary
+    \item[-] Cost of invalidating read-only copies before a write can occur
+\end{itemize}
+\subsubsection{Write-Update protocol}
+\begin{itemize}
+    \item Write
+        \begin{itemize}
+            \item done locally + broadcast new calue to all who have a copy of x
+        \end{itemize}
+    \item Read
+        \begin{itemize}
+            \item read local copy of x
+        \end{itemize}
+\end{itemize}
+Reads are cheap, good if a lot of readers and few writers. All ok if broadcasts
+can be totally ordered.
+
+\subsubsection{Bus-snooping}
+Bus controller listens for \textbf{all} messages for invalidate or broadcast messages.
+The bus is a bottleneck but very good for total ordering.
+\subsubsection{Write-back invalidation protocol (MSI)}
+\begin{description}
+    \item[M (modified)] only this cache entry is valid
+    \item[S (share)] cached on one or more processors, all valie
+    \item[I (invalid)] invalid copy
+\end{description}
+Change states based on processor operators and observed messages on the bus.
+\subsubsection{MESI-protocol}
+Introduce new state \textbf{E (exclusive)} no other cache has a copy of this copy
+and this copy cannot be modified.
+\subsubsection{CC-NUMA: Directory based Protocol for non-bus-based Architectures}
+Directory keeps the copy set for each memory block. 1 precence block per memory
+block and processor.
+\subsection{Performance issue: false sharing}
+Two variable are in same cache line but not used by both processors.
+\\How to avoid?
+\begin{itemize}
+    \item Smaller cache lines, but more administrative effort
+    \item Programmer or compiler gives hits for data placement
+    \item Limit time in exclusive mode to limit ping pong
+    \item Use weaker consistency models, more complicated and error-prone
+\end{itemize}
 \end{document}
