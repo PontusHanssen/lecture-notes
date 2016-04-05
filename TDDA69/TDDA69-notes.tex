@@ -179,5 +179,183 @@ STORE ``a''
 JMP # First LOAD
 /* for(var a=0; a<10; a+=1){ console.log(a) } */
 \end{verbatim}
+\section{Garbage collection and native code}
+\marginpar{Lecture 8\\2016-04-05}
+\subsection{JIT}
+\begin{itemize}
+    \item VM recompiles part of program during execution
+    \item Adaptive optimization
+        \begin{itemize}
+            \item Optimize depending on the current context
+            \item Profile-guided optimization
+        \end{itemize}
+\end{itemize}
+For dynamic languages it can optimize it for other types. Specialize for int,
+string, etc. 
+\subsection{From bytecode to native}
+\begin{itemize}
+    \item Use the registers as local cache
+    \item Example:
+        \begin{itemize}
+            \item Translate to three register machine
+        \end{itemize}
+\end{itemize}
+\begin{verbatim}
+PUSH 1
+PUSH 1
+ADD
+PUSH 4
+PUSH 5
+MUL
+DIV
+\end{verbatim}
+Use register a for stack pointer, b,c for cache.
+\begin{verbatim}
+SET_B 1
+SET_C 2
+ADD_B_C
+SET_C 4
+COPY_MEM_B A
+INC_A
+SET_B 5
+MUL_B_C
+DEC_A
+COPY_FROM_MEM_C A
+DIV_B_C
+\end{verbatim}
+Generating native code from dynamic typing is harder than static typing.
+Some different approaches:
+\begin{itemize}
+    \item Treat all variables as a pointer to an object
+    \item Threat all variables as 32/64 bit integers
+        \begin{itemize}
+            \item If first bit is 1, then value is object
+            \item Else, the value is 31/63 bit integer
+        \end{itemize}
+    \item Recompile a version of function for all possible types
+\end{itemize}
+\subsection{V8 case study}
+Object representation:
+\begin{itemize}
+    \item Does not use a dictionary
+    \item Creates hidden class definition
+\end{itemize}
+Create structs, use multiple structs when using dynamic members. Also generate
+one native function per parameter type.\\
+What about side effects?
+\begin{itemize}
+    \item A JIT would recompile
+\end{itemize}
+\subsection{Summary AOT}
+\begin{itemize}
+    \item Advandages
+        \begin{itemize}
+            \item Program is ready to use after installation
+        \end{itemize}
+    \item Disadvandages
+        \begin{itemize}
+            \item Static optimization slower
+        \end{itemize}
+\end{itemize}
+\subsection{Summary JIT}
+\begin{itemize}
+    \item Advantages
+        \begin{itemize}
+            \item Adaptive
+            \item More suitable for dynamic programming lang
+        \end{itemize}
+    \item Disadvantages
+        \begin{itemize}
+            \item Slow during execution
+            \item Debatable if adaptive optimization gives a noticable performance
+                improvement
+        \end{itemize}
+\end{itemize}
+\subsection{Summary Native code generation}
+\begin{itemize}
+    \item Faster
+    \item More complexity
+    \item Less portable
+\end{itemize}
+\section{Memory Management}
+Two low level operations, malloc() and free(). People forget to free memory,
+solution: use a garbage collector.
+\subsection{Garbage collector}
+\begin{itemize}
+    \item Automatically free unused memory
+    \item Need allocator and garbage algorithm
+\end{itemize}
+\subsection{Allocation algorithms}
+First approach: One big free space. Fast allocating, slow free due to compacting.
+\\Second approach: Free list. Free space is held in a linked list. 
+Causes fragmentation. Go through list until you find a big enough space to store new data.
+Or find ``best'' fit (smallest available).
+\\
+When allocation fails:
+\begin{itemize}
+    \item Do garbage collection and try again
+    \item If it doesn't work - increase heap size
+    \item Crash with outofmemoryerror
+\end{itemize}
+\subsection{Garbage collection algorithms}
+\subsubsection{Reference counting}
+Count the number of pointers pointing to a block.
+\begin{itemize}
+    \item Pros
+        \begin{itemize}
+            \item Simple, non-compacting
+            \item No need to suspend execution when collecting
+        \end{itemize}
+    \item Cons
+        \begin{itemize}
+            \item Extra word in block header
+            \item Fragile: bad if counter is forgotten
+            \item \textbf{MAJOR} Cannot collect circularly linked data structures.
+        \end{itemize}
+\end{itemize}
+\subsubsection{Mark-Sweep}
+Use a marker bit in the memory header. 1 if used, 0 if garbage.
+\\When running:
+\begin{itemize}
+    \item Mark all blocks reachable from root
+    \item Sweep all unmarked blocks to the free-list (non-compacting)
+\end{itemize}
+\begin{itemize}
+    \item Pros
+        \begin{itemize}
+            \item Minimal overhead in memory header
+            \item Little heap maintainance
+            \item Can collect circular
+        \end{itemize}
+    \item Cons
+        \begin{itemize}
+            \item Doesn't deal with heap fragmentation
+            \item Suspends the execution
+        \end{itemize}
+\end{itemize}
+\subsubsection{Copying garbage}
+Variation of mark-sweep. Copy in use memory to new memory space - compacting.
+\textbf{requires 2x the memory}.
+\subsubsection{Tri-color marking}
+Use three colors
+\begin{description}
+    \item[White] candidate for deletion
+    \item[Black] no connection to white obj and reachable from root
+    \item[Gray] reachable from root but with possible reference to white objs
+\end{description}
+\begin{itemize}
+    \item Initialization
+        \begin{itemize}
+            \item Initial all objects to while and gray
+        \end{itemize}
+    \item Pick object from gray
+        \begin{itemize}
+            \item Mark all objects it references to gray
+            \item Mark object as black
+        \end{itemize}
+    \item Stop when gray set is empty
+\end{itemize}
+This algorithm can be run on-the-fly!
+\subsubsection{Generational}
+Only but recently created objects in white set.
 \end{document}
-
