@@ -287,4 +287,57 @@ Two variable are in same cache line but not used by both processors.
     \item Limit time in exclusive mode to limit ping pong
     \item Use weaker consistency models, more complicated and error-prone
 \end{itemize}
+\section{SIMD Architectures}
+\marginpar{Lecture 3\\2016-04-06}
+\subsection{Pipelined vector units}
+Vectors of operands and instructions. Partition arithmetic circuits into layers, ``stages''
+so that they make up a pipeline.
+Requires a start-up phase, works in parallel. 
+\\$N=A+B$ takes N+d-1 cycles compared to $N\times d$.
+\subsection{SIMD Instructions}
+True parallel instructions. Take more than one word as input, eg 128bits.
+\subsection{Instruction level parallelism}
+VLIW Very long instruction word. multiple functional units working in parallel.
+Single string of long instruction words with explicitly parallel subinstructions.
+\\
+Superscalar. Multiple functional units. Single stream of orinary instructions.
+\subsection{Towards multicore}
+Superscalar and VLIW has reached its limits.
+\section{Hardware multithreading}
+Multiple threads share the functional units of a single processors.
+\begin{itemize}
+    \item Coarse grain - switch on load/cache miss
+    \item Fine grain - switch per cycle
+    \item SMT/Hyperthreading
+\end{itemize}
+\section{Multicore}
+\subsection{Processor in memory}
+Use checkerboard style with compartmentalized ``computers'' in each tile with a message
+passing system on-chip. Also introduces more complexity to the programmer.
+
+\subsection{Hardware Accelerators for HPC}
+\begin{itemize}
+    \item[+] Special-purpose hardware more effective than GP processor
+    \item[-] Low portability
+\end{itemize}
+Non-reconfigurable:
+\begin{itemize}
+    \item AltiVec SIMD
+    \item STI Cell/BE
+    \item GPUs
+\end{itemize}
+
+Reconfigurable accelerators:
+\begin{itemize}
+    \item FPGAs
+\end{itemize}
+Good on integer arithmetics, compute-intensive applications with low data transfer
+volume.\\
+Can give:
+\begin{itemize}
+    \item $10^4$ speedup
+    \item $10^3$ power reduction
+    \item $10^2$ reduction in cost
+\end{itemize}
+
 \end{document}
