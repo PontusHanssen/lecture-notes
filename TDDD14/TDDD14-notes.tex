@@ -11,6 +11,7 @@
 \usepackage{mathtools}
 \newtheorem{definition}{Definition}
 \newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
 \newtheorem{example}{Example}
 \title{Lecture Notes\\TDDD14}
 \author{Pontus Persson}
@@ -148,5 +149,315 @@ In this course: an input is always a string of some alphabet.
 \begin{definition}
     Set concatenation $A,B\in\Sigma^*$, $AB=\left\{ xy \middle | x\in A, y\in B \right\}$
 \end{definition}
-\end{document}
+\begin{definition}
+    Any subset $A\subseteq \Sigma^*$ is called a \textbf{language}.
+\end{definition}
+\section{States and Transitions}
+\marginpar{Lecture 2\\2016-04-06}
+Intuitively, a \textbf{state} is a snapshot of a system (automata). A state gives
+all relevant information necessary to determine how the system will evolve from
+that point on.
+\\\textbf{Transitions} are changes of state, they can happen spontaneously, or in response
+to external inputs.
+\\A system that consists of only finitely many states and transitions among
+them is called a \textbf{finite state system}.
+\\We will model these by a model called \textbf{finite automaton}.
+\subsection{Deterministic finite automaton (DFA)}
+Formally a \textbf{deterministic finite automaton} (DFA) is a structure.
+\begin{align*}
+    M=(Q,\Sigma,\delta,s,F)
+\end{align*}
+Where:
+\begin{itemize}
+    \item $Q$ is a finite set of states
+    \item $\Sigma$ is a finite set, the input alphabet
+    \item $\delta : Q\times\Sigma\rightarrow Q$ is the transition function
+    \item $s\in Q$ the start state
+    \item $F\subseteq Q$ is the set of final states (accept states)
+\end{itemize}
 
+\begin{example}
+    3.1 in the book.\\
+    a)\\
+\begin{align*}
+    Q&=\left\{ 0,1,2,3 \right\}\\
+    \Sigma&=\left\{ a,b \right\}\\
+    \delta(0,a)&=1\\
+    \delta(1,a)&=2\\
+    \delta(2,a)&=\delta(3,a)=3\\
+    \delta(q,b)&=q,\mbox{, }q\in Q\\
+    s&=0\\
+    F&=\left\{ 3 \right\}
+\end{align*}
+b) (table representation)
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l|l l}
+        & a & b\\\hline
+        0 & 1 & 0\\
+        1 & 2 & 1 \\
+        2 & 3 & 2 \\
+        3F & 3 & 3
+    \end{tabular}
+    \caption{Table representation}
+\end{table}
+c) (transition diagram)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{transition-diagram.png}
+    \caption{Transition diagram}
+\end{figure}
+This automaton excepts all strings/languages containing at least three ``a''s.\\
+\end{example}
+\subsubsection{State acceptance}
+We define a function
+\begin{align*}
+    \hat{\delta}&: Q\times\Sigma^*\rightarrow Q
+\end{align*}
+by induction on the length of the string x:
+\begin{align*}
+    \hat{\delta}(q,\epsilon)&=q\\
+    \hat{\delta}(q,xa)&=\delta(\hat{\delta}(q,x),a)
+\end{align*}
+$\hat{\delta}$ is the multi-step version of $\delta$. $\delta$ and $\hat{\delta}$
+agree on string of length one:
+\begin{align*}
+    \hat{\delta}(q,a)&= \hat{\delta}(q, \epsilon a)\\
+    &=\delta(\hat{\delta}(q,\epsilon),a)\\
+    &=\delta(q,a)
+\end{align*}
+A string $x$ is said to be accepted by the automaton $M$ if:
+\begin{align*}
+    \hat{\delta}(s,x)&\in F
+\end{align*}
+and rejected by automaton $M$ if:
+\begin{align*}
+    \hat{\delta}(s,x)\notin F
+\end{align*}
+where $s$ is the start state and $F$ is the set of final states of $M$.
+\subsubsection{Accepted languages}
+The set or language accepted by $M$ is the set of all strings accepted by $M$
+, and is denoted $L(M)$.
+\begin{align*}
+    L(M)=\left\{ x\in\Sigma^*\middle | \hat{\delta}(s,x)\in F \right\}
+\end{align*}
+A language $A\subseteq \Sigma^*$ is said to be \textbf{regular} if $A=L(M)$
+for some finite automaton $M$.\\
+\textbf{NOTE:} The language accepted by the finite automaton from the example
+above is regular.
+\begin{example}
+    3.2 in the book.\\
+    \begin{align*}
+        L_2&=\left\{ xaaay \middle | x,y\in \left\{ a,b \right\}^* \right\}\\
+        &=\left\{ x\in\left\{ a,b \right\}^* \middle | x 
+        \mbox{ contains a substring of three consecutive a's} \right\}
+    \end{align*}\\
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{r|l l}
+            & a & a
+            \\\hline
+            $\rightarrow$0 & 1 & 0\\
+            1 & 2 & 0\\
+            2 & 2 & 0\\
+            3F & 3 & F
+        \end{tabular}
+    \end{table}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{example3-2.png}
+    \end{figure}
+\end{example}
+\begin{example}
+    \begin{align*}
+        L_3=\left\{ x\in\left\{ 0,1 \right\}\middle | \mbox{x represents a multiple of three in binary} \right\}
+    \end{align*}
+    Here is an automaton that accepts $L_3$:
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{r|l l}
+            & 0 & 1\\\hline
+            $\rightarrow$0F & 0 & 1\\
+            1 & 2 & 0\\
+            2 & 1 & 2
+        \end{tabular}
+    \end{table}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{example4.png}
+    \end{figure}
+    \textbf{Observations:}
+    \begin{enumerate}
+        \item append 0: multiply by 2
+        \item append 1: multiply by 2 and add 1
+    \end{enumerate}
+    If the number represented by the string that is scanned so far is:
+    \begin{itemize}
+        \item $0 (mod 3)$
+        \item $1 (mod 3)$
+        \item $2 (mod 3)$
+    \end{itemize}
+    it will be in state 0, 1, 2 respectively.\\
+    Property from Number Theory:
+    \begin{align*}
+        x,y,z &\in \mathbb{Z}\\
+        \mbox{if } \\
+        x&\equiv y (mod z)\\
+        \mbox{then } \\
+        ax+b &\equiv ay+b (mod x),\forall a,b\in\mathbb{Z}
+    \end{align*}
+Show that the transition will be true for all combinations of states and inputs.
+\end{example}
+\subsection{Determinism}
+Determinism: At any step during the execution it is completely determined
+what the system does next (depending on current state and input).
+\subsection{Non-determinism}
+Non-determinism: During the execution it is not always determined what to do
+next, that means that a choice has to be made (a choice that does not depend
+on current state nor input).
+\subsection{Non-deterministic automaton (NFA)}
+In a non-deterministic automaton the next state is not necessarily uniquely
+determined by current state and input. There may be one, many, or even zero
+next states. NFAs may have several start states.
+\\An NFA works as a DFA, but in addition, whenever the next state is not uniquely
+determined, it ``guesses'' what next state to assume.
+\\Obviously, different guesses may lead to different computation paths and outcomes
+(accept vs. reject).
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{nfa.png}
+    \caption{An example of an NFA}
+\end{figure}
+\subsubsection{NFA acceptance}
+An NFA is said to accept an input $x$ if at least one possible computation
+path of input $x$ starting from at least one of the start states leads to a
+final state.
+\begin{example}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{nfa2.png}
+        \caption{State diagram for example 7}
+    \end{figure}
+    Is an NFA because of the choice in state 1 and getting stuck in state 6 if
+    there is input left.\\
+    Input: 010111 can be accepted.\\
+    Input: 100000 always rejected.
+\end{example}
+Can NFAs accept more languages than DFAs?\\
+\textbf{NO!}\\
+We will show how to construct for any NFA an equivalent DFA in the sense of
+accepted language.
+\subsubsection{NFA to DFA conversion}
+\begin{example}
+    5.1 in the book\\
+    \begin{align*}
+        A=\left\{ x\in\left\{ 0,1 \right\}^* \middle | 
+        \mbox{the second symbol from the right is 1} \right\}
+    \end{align*}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{example5-1-1.png}
+        \caption{NFA example}
+    \end{figure}
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{r|l l}
+            DFA & 0 & 1 \\\hline
+            $\emptyset$ & $\emptyset$ & $\emptyset$\\
+            $\left\{ q \right\}$ & $\left\{ p \right\}$ & $\left\{ p,q \right\}$\\
+            $\left\{ p \right\}$ & $\left\{ r \right\}$ & $\left\{ r \right\}$\\
+            $\left\{ r \right\}$ & $\emptyset$ & $\emptyset$\\
+            $\left\{ p,q \right\}$ & $\left\{ p,r \right\}$ & $\left\{ p,q,r \right\}$\\
+            $\left\{ p,r \right\}$ & $\left\{ p \right\}$ & $\left\{ p,q \right\}$\\
+            $\left\{ r,q \right\}$ & $\left\{ r \right\}$ & $\left\{ r \right\}$\\
+            $\left\{ p,q,r \right\}$ & $\left\{ p,r \right\}$ & $\left\{ p,q,r \right\}$
+        \end{tabular}
+        \caption{All possible subsets we could be in}
+    \end{table}
+    Cross off all states not reachable when starting from the start state.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{example-5-2.png}
+        \caption{DFA equivalent to previous NFA}
+    \end{figure}
+\end{example}
+    \subsubsection{Formal definition of NFAs}
+    An NFA is a five-tuble:
+    \begin{align*}
+        N&=\left( Q,\Sigma,\Delta,S,F \right)
+    \end{align*}
+    where:
+    \begin{itemize}
+        \item $S\subseteq Q$ is the set of start sets
+        \item $\Delta: Q\time\Sigma^*\rightarrow 2^Q$
+        \item All the rest as for the DFA definition
+    \end{itemize}
+    \textbf{Note:} $2^Q=\left\{ A\middle | A\subseteq Q \right\}$
+        $\Delta(p,a)$ gives the set of all states that $N$ is allowed
+        to move to from $p$ in one step ? input symbol $a$. The set $\Delta(p,a)$
+        can be empty.\\
+        $\Delta$ is called the transition function of $N$.
+        \\We extent $\Delta$ to $\hat{\Delta}$ to the multistep version of $\Delta$.
+        \begin{align*}
+            \hat{\Delta}&:2^Q\times \Sigma^* \rightarrow 2^Q\\
+            \hat{\Delta}(A,\epsilon)&=A\\
+            \hat{\Delta}(A,xa)&=\cup_{q\in\hat{\Delta}(A,x)}\Delta(q,a)
+        \end{align*}
+        For $A\subseteq Q$ and $x\in\Sigma^*$, $\hat{\Delta}(A,x)$ is the set
+        of all states reachable under the input string $x$ from some state in $A$.
+        \\\textbf{Note:} for $a\in\Sigma$<++>
+        \begin{align*}
+            \hat{\Delta}(A,a)&=\cup_{p\in\hat{Delta}(A,\epsilon)}\Delta(p,a)\\
+            &=\cup_{p\in A}\Delta(p,a)
+        \end{align*}
+        The automaton $N$ is said to accept $x\in\Sigma^*$ if:
+        \begin{align*}
+            \hat{\Delta}(S,x)\cap F \neq \emptyset
+        \end{align*}
+        $L(N)$ is the set of all strings accepted by $N$.
+        \begin{align*}
+            L(N)=\left\{ x\in\Sigma^* \middle | \mbox{N accepts x} \right\}
+        \end{align*}
+        \textbf{Note:} Any DFA is equivalent to an NFA where:
+        $\Delta(p,a) = \left\{ \delta(p,a) \right\}$.
+        \begin{lemma}
+            For any $x,y\in\Sigma^*$ and $A\subseteq Q$: $\hat{\Delta}(A,xy)=\hat{\Delta}(\hat{\Delta}(A,x),y)$
+        \end{lemma}
+        \subsubsection{The subset construction}
+        Let
+        \begin{align*}
+            N=(Q_N,\Sigma,\Delta_N,S_N,F_N)
+        \end{align*}
+        be an arbitrary NFA.\\
+        Let $M$ be the following DFA:
+        \begin{align*}
+            M=(Q_M, \Sigma, \delta_M, s_M, F_M)
+        \end{align*}
+        where:
+        \begin{itemize}
+            \item $Q_M = 2^Q$
+            \item $\delta_M(A,a)=\hat{\Delta}_N(A,a)$
+            \item $s_M=S_N$
+            \item $F_M=\left\{ A\subseteq Q_N \middle | A \cap F_N \neq \emptyset \right\}$
+        \end{itemize}
+
+        \begin{lemma}
+            For any $A\subseteq Q_N$ and $x\in\Sigma^*$
+            \begin{align*}
+                \hat{\delta}_M(A,x) = \hat{\Delta}_N(A,x)
+            \end{align*}
+            Proof via induction on the length of $x$.
+        \end{lemma}
+
+        \begin{theorem}
+            The automata $M$ and $N$ accept the same language
+            \begin{align*}
+                x&\in L(M)\\
+                \Leftrightarrow &\hat{\delta}_M(s_M,x)\in F_M\\
+                \Leftrightarrow &\hat{\Delta}_N(S_M,x)\in F_M\\
+                \Leftrightarrow &\hat{\Delta}_N(S_N,x)\in F_M\\
+                \Leftrightarrow &\hat{\Delta}_N(S_N,x)\cap F_N \neq \emptyset\\
+                \Leftrightarrow &x\in L(M)
+            \end{align*}
+        \end{theorem}
+\end{document}
