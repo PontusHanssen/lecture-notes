@@ -340,4 +340,161 @@ Can give:
     \item $10^2$ reduction in cost
 \end{itemize}
 
+\section{Design of parallel programs}
+\marginpar{Lecture 4\\2016-04-08}
+Approaches:
+\begin{itemize}
+    \item Message passing
+    \item Shared memory programming
+    \item Dataparallel programming
+    \item PCAM
+\begin{itemize}
+    \item Partitioning
+    \item Communication
+    \item Agglomeration
+    \item Mapping
+\end{itemize}
+\end{itemize}
+\subsection{Parallel computiation models}
+Abstract from hardware and technology, specify basic operations, specify
+how data is stored. Work in terms of psuedo code instead of source code
+to make code more portable.\\
+A model consists of:
+\begin{itemize}
+    \item Programming model (qual)
+        \begin{itemize}
+            \item basic operations
+            \item memory model
+            \item degree of synchronous execution (how much synch must be done)
+        \end{itemize}
+    \item Cost model (quant)
+        \begin{itemize}
+            \item Key parameters
+            \item cost functions for basic operations (what is cost of arithmetic
+                operations, branching, etc.)
+            \item constraints (how many send in network before software layer
+                is saturated, etc.)
+        \end{itemize}
+\end{itemize}
+Analyze algorithms before implementation. Focus on characteristic influence on time/
+space complexity features of broader class of parallel machines.
+
+\subsection{The notion of task}
+A parallel computation consists of tasks. Tasks execute concurrently.\\
+4 basic operations + local operations:
+\begin{enumerate}
+    \item send a message
+    \item recv a message
+    \item create new task
+    \item terminate
+\end{enumerate}
+Tasks can be mapped to physical processors (assigned for execution). Tasks
+define a notion of locality: items in local memory are ``close'' other are
+``remote''.
+\subsection{Message passing}
+\subsubsection{Via channels and ports}
+Messages sent via channels = message queues, mailboxes. Typically send is
+non-blocking and receive is a blocking operation.
+\subsubsection{Point to point}
+Communication to named process (unique name, PID). Equivalent to channels.
+\subsection{Shared memory}
+Tasks share a common address space. Communication between tasks via shared data
+via locks and semaphores. No data distribution, no notion of ownership.
+\begin{itemize}
+    \item[+] Easier program development
+    \item[+] No need to specify communication of data
+    \item[$-$] Hard to understand and manage locality
+        \begin{itemize}
+            \item[$\rightarrow$] performance tuning more difficult than message
+                passing
+        \end{itemize}
+\end{itemize}
+\subsection{Dataparallel programming}
+Concurrency stems from applying the same operation to multiple elements of the same
+data structure. ``Add 2 to alla elements of this array'', ``Increase the salaryof all employees with 5 years service''. 
+\\Large amount of fine granularity tasks:
+of all employees with 5 years service''. Large amount of fine granularity tasks:
+\begin{itemize}
+    \item Allows to extract massive parallelism for large data sets
+    \item Code easier to understand
+    \item Communication can be figured out automatically by compier
+        \begin{itemize}
+            \item[$\rightarrow$] easier to program than message passing
+        \end{itemize}
+    \item Share address space from programmers pov
+    \item May be executed on SIMD or MIMD architecture
+\end{itemize}
+\subsection{Foster's PCAM method for parallel program design}
+$C=AB$ $C_{i,j}=\sum a_{i,k}b_{kj} \forall i,j\in\left\{ 1,\cdots n \right\}$.
+Sequential approach: three nested for-loops.\\
+\begin{enumerate}
+    \item Partition - what is the smallest computation step?
+    \item Add communication, synchronization, constraints, etc.
+    \item[$\rightarrow$] This is for ideal machine, specify for specific parallel computer
+    \item Agglomerate (add tasks to macro-tasks, executes contained tasks
+        sequentially)
+    \item Map macro-tasks/processes to processors
+\end{enumerate}
+\subsubsection{Partition}
+Try to decompose program into pieces, tasks.\\
+Two main methods:
+\begin{itemize}
+    \item Domain decomposition
+        \begin{itemize}
+            \item partition data structures
+            \item one task per parition
+        \end{itemize}
+    \item functional decomposition
+        \begin{itemize}
+            \item one task per function call or module execution
+        \end{itemize}
+\end{itemize}
+\textbf{Example} - domain decomposition:
+\begin{verbatim}
+for all i,j,k from 1 to n
+A[i,j,k] = f (A[i-1,j,k], A[i,j-1,k], \ldots, A(i,j,k+i);
+\end{verbatim}
+may be decomposed into 1,2 or 3 dimensions. 3D-decomposition offers the greatest
+flexibility.
+\\\textbf{Example}: functional decomposition\\
+N-queens, alpha-beta search etc. A new task is created for each search call
+(function call). Functions not located on the same path may execute in parallel.
+\\
+\textbf{Example}: functional model decomposition\\
+Simulation of earth climate. One task per model (atmosphere, ocean, land, hydrology).
+A coarse function decomposition according to the components.
+\\
+\textbf{Checklist:}
+\begin{itemize}
+    \item Define more tasks than there are processors
+    \item Avoid redundant computation and storage
+    \item Make tasks of comparable size
+    \item number of tasks should scale with problem size
+    \item Try different alternative partitions
+\end{itemize}
+\subsection{Communication and Synchronization}
+Determine communication and synchronization structure. can be static/dynamic and
+local/global. Local communication (update value on weighted average of neighbours
+in 2D-mesh). This is called Jacobi-update schema.\\
+\\Gauss-Seidel update schema: Use old values for north and west and new values for
+south and east.
+\\Faster convergence than Jacobi, but less parallelism.
+\\
+\\Example for global communication: summing a sequence of numbers.\\
+Try to use divide and conquer, for sum, use binary tree.\\
+\\Unstructured and dynamic communication: Communication structure may be irregulr
+and data dependent, and may change dynamically during execution. (heat sink).
+
+\subsubsection{Pipelining}
+Complete sequence of dependant computation (f1 to fk) to be applied elementwise
+on x1 to xn.  For xi fi must be done before fi-1. fi on different x are independant.
+\\Overlap execution of all fi for k subsequent xj.
+
+\subsubsection{Communication and synchronization checklist}
+\begin{itemize}
+    \item Tasks should perform approx. equal numbers of communication
+    \item Communicate with small number of neighbours
+    \item Communication should be able to proceed concurrently, otherwise does not scale
+    \item Computation assoiciated with different tasks should be able to proceed concurrently
+\end{itemize}<++>
 \end{document}
