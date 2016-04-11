@@ -472,7 +472,7 @@ A coarse function decomposition according to the components.
     \item number of tasks should scale with problem size
     \item Try different alternative partitions
 \end{itemize}
-\subsection{Communication and Synchronization}
+\subsubsection{Communication and Synchronization}
 Determine communication and synchronization structure. can be static/dynamic and
 local/global. Local communication (update value on weighted average of neighbours
 in 2D-mesh). This is called Jacobi-update schema.\\
@@ -496,5 +496,41 @@ on x1 to xn.  For xi fi must be done before fi-1. fi on different x are independ
     \item Communicate with small number of neighbours
     \item Communication should be able to proceed concurrently, otherwise does not scale
     \item Computation assoiciated with different tasks should be able to proceed concurrently
-\end{itemize}<++>
+\end{itemize}
+\marginpar{Lecture 5\\2016-04-11}
+\subsubsection{Step 3: Agglomeration}
+Tries to combine, merge, agglomerate tasks to obtain fewer tasks each of greater
+size.
+\begin{itemize}
+    \item Trade-off between concurrency and communication.
+\end{itemize}
+\begin{itemize}
+    \item Reduce from 3 dimensions to 2
+    \item Combine adjacent tasks into 3d partitions
+    \item Subtrees in D\&C are coalesced.
+    \item Nodes in three algorithm are combined
+\end{itemize}
+In a 2D mesh: exploit surface to volume ratio, replicate computation to
+reduce communication. Bundle multiple communications from same sender to same
+receiver in one message.
+\subsubsection{Step 4: Mapping and scheduling}
+Specify where each task should execute (mapping). Scheduling: where and when
+should task execute?
+\\Goal: Minimize total execution time.
+\\Strategies:
+\begin{itemize}
+    \item Place tasks (if possible) on different processors
+    \item Place tasks that communicate frequently on the same processor
+    \item Load balancing
+\end{itemize}
+Determined statically of dynamically.
+\section{MPI - Message Passing Interface}
+SPMD. Constant number of parallel activities in contrast to fork/join.
+\subsection{Determinism}
+\begin{itemize}
+    \item Arrival order of tho sent messages is unspecified
+    \item Guarantees that two messages sent from A to B will arrive in the same
+        order
+    \item Messages can be distinguished by sender and a tag
+\end{itemize}
 \end{document}
