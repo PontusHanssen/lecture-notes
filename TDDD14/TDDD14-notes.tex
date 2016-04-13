@@ -103,18 +103,18 @@ In this course: an input is always a string of some alphabet.
     Denoted by $|x|$.
 \end{definition}
 \begin{definition}
-    The \textbf{null string} of \textbf{empty string} is denoted by $\epsilon$.\\
-    $|\epsilon|=0$
+    The \textbf{null string} of \textbf{empty string} is denoted by $\varepsilon$.\\
+    $|\varepsilon|=0$
 \end{definition}
 \begin{definition}
     Some terminology.
     \begin{itemize}
-        \item $a^n$ A string of a's of length n ($a^5=aaaaa$, $a^0=^{def}\epsilon$)
+        \item $a^n$ A string of a's of length n ($a^5=aaaaa$, $a^0=^{def}\varepsilon$)
         \item The set of all string over $\Sigma$ is denoted by $\Sigma^*$.
-        \item $\emptyset^*=\left\{ \epsilon \right\}$
+        \item $\emptyset^*=\left\{ \varepsilon \right\}$
         \item If $\Sigma$ is non-empty then, $\Sigma^*$ is an infinite set of
             finite-length strings.
-        \item Note: $\emptyset,\left\{ \epsilon \right\}, \epsilon$ are three
+        \item Note: $\emptyset,\left\{ \varepsilon \right\}, \varepsilon$ are three
             \textbf{different} things.
     \end{itemize}
 \end{definition}
@@ -124,7 +124,7 @@ In this course: an input is always a string of some alphabet.
             \textbf{Note:} $xy \neq yx$ in general.
             \begin{itemize}
                 \item Concatenation is associative: $(xy)z=x(yz)$
-                \item $\epsilon$ is an identity for concatenation $\epsilon x=x\epsilon = x$
+                \item $\varepsilon$ is an identity for concatenation $\varepsilon x=x\varepsilon = x$
                 \item $|xy|=|x|+|y|$
                 \item $a^ma^n=a^{m+n}$
             \end{itemize}
@@ -216,14 +216,14 @@ We define a function
 \end{align*}
 by induction on the length of the string x:
 \begin{align*}
-    \hat{\delta}(q,\epsilon)&=q\\
+    \hat{\delta}(q,\varepsilon)&=q\\
     \hat{\delta}(q,xa)&=\delta(\hat{\delta}(q,x),a)
 \end{align*}
 $\hat{\delta}$ is the multi-step version of $\delta$. $\delta$ and $\hat{\delta}$
 agree on string of length one:
 \begin{align*}
-    \hat{\delta}(q,a)&= \hat{\delta}(q, \epsilon a)\\
-    &=\delta(\hat{\delta}(q,\epsilon),a)\\
+    \hat{\delta}(q,a)&= \hat{\delta}(q, \varepsilon a)\\
+    &=\delta(\hat{\delta}(q,\varepsilon),a)\\
     &=\delta(q,a)
 \end{align*}
 A string $x$ is said to be accepted by the automaton $M$ if:
@@ -400,14 +400,14 @@ accepted language.
         \\We extent $\Delta$ to $\hat{\Delta}$ to the multistep version of $\Delta$.
         \begin{align*}
             \hat{\Delta}&:2^Q\times \Sigma^* \rightarrow 2^Q\\
-            \hat{\Delta}(A,\epsilon)&=A\\
+            \hat{\Delta}(A,\varepsilon)&=A\\
             \hat{\Delta}(A,xa)&=\cup_{q\in\hat{\Delta}(A,x)}\Delta(q,a)
         \end{align*}
         For $A\subseteq Q$ and $x\in\Sigma^*$, $\hat{\Delta}(A,x)$ is the set
         of all states reachable under the input string $x$ from some state in $A$.
-        \\\textbf{Note:} for $a\in\Sigma$<++>
+        \\\textbf{Note:} for $a\in\Sigma$
         \begin{align*}
-            \hat{\Delta}(A,a)&=\cup_{p\in\hat{Delta}(A,\epsilon)}\Delta(p,a)\\
+            \hat{\Delta}(A,a)&=\cup_{p\in\hat{Delta}(A,\varepsilon)}\Delta(p,a)\\
             &=\cup_{p\in A}\Delta(p,a)
         \end{align*}
         The automaton $N$ is said to accept $x\in\Sigma^*$ if:
@@ -460,4 +460,312 @@ accepted language.
                 \Leftrightarrow &x\in L(M)
             \end{align*}
         \end{theorem}
+        \marginpar{Lecture 4\\2016-04-13}
+        \subsection{$\varepsilon$-transition}
+        We can have transitions without reading an input symbol.
+        \begin{figure}[H]
+            \centering
+            \includegraphics{epsilon.png}
+            \caption{$\varepsilon$-transition}
+            \label{fig:epstrans}
+        \end{figure}
+        \begin{definition}
+            $NFA_\varepsilon$\\
+            $N_\varepsilon = \left( Q,\Sigma, \Delta, S, F \right)$\\
+            as NFA, but $\Delta: Q\times (\Sigma\cup \left\{ \varepsilon \right\}
+            \rightarrow 2^Q$\\
+            Note: $\Sigma$ never contains $\varepsilon$!
+        \end{definition}
+
+        For $A\subseteq Q$\\
+        $C_\varepsilon(A)$ = all states reachable from some $q\in A$ via an
+        $\varepsilon$-transition.
+        \begin{definition}
+            \begin{enumerate}
+                \item $A\subseteq C_\varepsilon(A)$
+                \item if $q\in C_\varepsilon(A)$, then $\Delta(q,\varepsilon)
+                    \subseteq C_\varepsilon(A)$
+                \item No other states are in $C_\varepsilon(A)$
+            \end{enumerate}
+        \end{definition}
+        \begin{definition}
+            \begin{align*}
+            \hat{\Delta}&: 2^Q\times \Sigma^* \rightarrow 2^Q\\
+            \hat{\Delta}(A,\varepsilon)&=C_\varepsilon(A)\\
+            \hat{\Delta}(A,xa)&=C_\varepsilon(\cup_{q\in\hat{\Delta}(A,x)}\Delta
+            (q,a)
+        \end{align*}
+        Note:
+        \begin{align*}
+            \hat{\Delta}(A,a)=C_\varepsilon(\cup_{q\in C_\varepsilon(A)}\Delta(q,a)
+        \end{align*}
+        \end{definition}
+        \subsubsection{DFA from $\varepsilon$-NFA}
+        From $N_\varepsilon = \left( Q_{N_c}, \Sigma, \Delta_{N_c}, S_{N_c}, F_{N_c} \right)$
+        we construct the DFA $M=\left(Q_M, \Sigma, \delta_M, s_m, F_m\right)$.\\
+        where:
+        \begin{align*}
+            Q_M&=2^{Q_{N_c}}\\
+            s_M&=C_\varepsilon(S_{N_c}\\
+            \delta_M(A,a)&=\hat{\Delta}(A,a)\\
+            F_M&=\left\{ A\subseteq Q_{N_c}\middle | A\cap F_{N_c} \neq \emptyset \right\}
+        \end{align*}
+        You can prove via induction that $\hat{\delta}(s_M,x)=\hat{\Delta}(S_{N_c},x)$
+        and then you show $L(N_c)=L(M).$.
+        \begin{figure}[H]
+            \centering
+            \includegraphics{nfaeps.png}
+            \caption{$NFA_\varepsilon$}
+            \label{fig:nfaeps}
+        \end{figure}
+        \begin{table}[H]
+            \centering
+            \begin{tabular}{r|l l|l|l| l l}
+                & a & b * $\varepsilon$ & $C_\varepsilon$ & a & b\\\hline
+                SF & $\emptyset$ & $\emptyset$ & 1 & $\left\{ 1 \right\}$ & $\left\{ s,1 \right\}$ & $\left\{  1,2,s\right\}$\\
+                1 & 1 & 2 & $\emptyset$ & $\left\{ 1 \right\}$ &$\left\{ 1 \right\}$ & $\left\{ 1,2,S \right\}$\\
+                2 & $\emptyset$ & $\emptyset$ & s & $\left\{ 2,s,1 \right\}$ & $\left\{ 1 \right\}$ & $\left\{ 1,2,s \right\}$
+            \end{tabular}
+        \end{table}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{dnanoeps.png}
+            \caption{DFA from $NFA_\varepsilon$}
+        \end{figure}
+\section{Regular expressions}
+\begin{definition}
+    Given an alphabet $\Sigma$, the following are \textbf{regular expressions}:
+    \begin{itemize}
+        \item the empty set, denoted $\emptyset$
+        \item the singleton set that contains the empty string 
+            $\left\{ \varepsilon \right\}$, denoted by $\varepsilon$
+        \item Any singleton set that contains a symbol from $\Sigma$
+    \end{itemize}
+\end{definition}
+Let $X,Y$ be two regular expressions. The following operations are used to
+produce more complex regular expressions:
+\begin{itemize}
+    \item concatenation, denoted $XY$.
+    \item alternation (set unioun), denoted $X+Y$
+    \item Kleene star, denoted $X^*$
+\end{itemize}
+Parentheses are allowed to reduce ambiguity. To reduce the use of parenthesis,
+the Kleene star has highest priority, then concatenation and last alternation.
+\textbf{Examples:}\\
+$\Sigma = \left\{ a,b \right\}$
+\begin{enumerate}
+    \item $ab+a=\left\{ ab,a \right\}$
+    \item $\left( a+b \right)^*=\left\{ \varepsilon,a,b,aa,ab,ba,bb,aaa,aab,\ldots \right\}$
+    \item $\left(a+\varepsilon\right)b^*=\left\{ \varepsilon,a,b,ab,abb,abbb,bb,bbb,\ldots \right\}$
+\end{enumerate}
+Alteration and concatenation are associative, therefore parenthesis can be
+omitted in the following cases:
+\begin{itemize}
+    \item $(a+b)+c=a+b+c$
+    \item $(ab)c=a(bc)=abc$
+\end{itemize}
+Alternation is also commutative, concatenation is not.\\
+Some transformation laws. Let $\alpha,\beta,\gamma$ be regular expressions.
+\begin{align}
+    \alpha+\emptyset &= \alpha\\
+    \alpha+\alpha&=\alpha\\
+    \varepsilon \alpha &= \alpha\\
+    \alpha(\beta + \gamma) &= \alpha\beta + \alpha\gamma\\
+    (\alpha+\beta)\gamma &= \alpha\gamma + \beta\gamma\\
+    \varepsilon + \alpha\alpha^* &= \alpha^*\\
+    (\alpha\beta)^*\alpha &= \alpha(\beta\alpha)^*\\
+    (\alpha^*\beta)^* &= (\alpha+\beta)^* = \alpha^*(\beta\alpha^*)^*\\
+    (\varepsilon+\alpha)^* &= \alpha^*\\
+    \alpha\alpha^* &= \alpha^*\alpha
+\end{align}
+\subsection{Transform regular expression to $NFA_\varepsilon$}
+\begin{itemize}
+    \item $\emptyset\rightarrow \emptyset$
+    \item $\varepsilon \rightarrow $ one state that is both start and final
+    \item $a\rightarrow$ a start state and a final state connected by input $a$
+\end{itemize}
+\subsection{From regex to $NFA_\varepsilon$}
+\subsubsection{Concatenation}
+Concatenation of $X,Y$. Let $M_x$ ans $M_y$ be automata accepting $X$ and $Y$, respectively.\\
+Let $F_x$ be the final states of $M_x$ and $S_y$ be the start states of $M_y$.
+Introduce a new state $s,$ and introduce $\varepsilon$-transitions from every
+state in $F_x$ to $s$ and from $s$ to every state in $S_y$. Make the states
+in $F_x$ non-final states. The new automata is called $M_{XY}$.
+
+\subsubsection{Alternation}
+Alternation of $X,Y$. Simply define $M_{X+Y}$ as $M_X$ $M_Y$ ``together''
+(is the sense that they are still disconnected). Same automata but, disconnected.
+
+\subsubsection{Kleene star}
+$X^*$. Introduce a new final start state s. $\varepsilon$-transitions
+from s to all start states of $M_X$ and $\varepsilon$-transitions from all
+final state of $M_X$ to s.\\
+\textbf{Example:} $L=\left\{a^nb \middle | n\geq 0 \right\}= \left\{ b,ab,aab,aaab,\ldots \right\}$\\
+$L^*=\left\{ w\in \left\{ a,b \right\}^* \middle | \mbox{w ends with b or }w=\varepsilon \right\}$
+\subsection{From DFA to regexp}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{dfa2regex.png}
+    \caption{DFA}
+\end{figure}
+Associate a language to each state.\\
+$A_i=L(q_i)=\left\{ x\in \Sigma^* \middle | \hat{\delta}(q_i,x)\in F \right\}=$
+strings that move M from state $q_i$ to some final state.\\
+Idea: express these languages in terms of each other, using regular expression-operations.
+\begin{align}
+    A_1&=aA_1+bA_2+\varepsilon\\
+    A_2&=bA_2+aA_3\\
+    A_3&=aA_1+bA_2
+\end{align}
+Then solve the equations! In particular we are interested in $A_1=L(M)$.
+\\How to solve it? \textbf{Ardm's Theory}: \\Let $A,B$ languages, $\varepsilon \notin A$.
+The equation $X=AX+B$ has the unique solution $X=A^*B$.
+Eliminate $A_3$ using (13):
+\begin{align*}
+    A_2 &= bA_2 + a(aA_1+bA_2)\\
+    &= bA_2 + aaA+1 + abA+2\\
+    &= (ab+b)A_2+aaA_1\\
+    \Leftrightarrow A_2 &= (ab+b)^*aaA_1\\
+    \Rightarrow A_1 &= aA_1 + b(ab+b)^*aaA_1+\varepsilon \\
+    &= (a+b(ab+b)^*aa)A_1+\varepsilon\\
+    &= (a+b(ab+b)^*aa)^*
+\end{align*}
+\section{Equivalence relations}
+Given $~\subseteq X\times X$ is an equivalence-relation if for any $x,y,x\in X$:
+\begin{enumerate}
+    \item $x\sim x$ (reflexive)
+    \item $x\sim y \Rightarrow y\sim x$ (symmetric)
+    \item $x\sim y$ and $y\sim z$ then $x\sim y$
+\end{enumerate}
+The equ-class of an $x\in X$ is the set $\left\{  y\in X \middle | y\sim x\right\}$.
+It is denoted either by $\left[ x \right]_\sim$ or $x/\sim$.
+\\The set of all equ-classes is denoted by $X/\sim$.\\
+The number of equ-classes is called the index of $\sim$.
+
+\section{DFA state minimization}
+\begin{enumerate}
+    \item Delete inaccessible states
+    \item Collapse ``equivalent'' states
+\end{enumerate}
+Two states are equivalent when they have the same associated languages.\\
+$p\in Q$, $L(p)=\left\{ x\in \Sigma^* \middle | \hat{\delta}(p,x) \in F \right\}$.
+\subsection{Quotient construction}
+$p \approx q \Leftrightarrow \forall x\in \Sigma^* (\hat{\delta}(p,x)\in F \Leftrightarrow \hat{\delta}(q,x) \in F) \Leftrightarrow L(p)=L(q)$.
+\\\textbf{Note:} $\approx$ is an equ-relation.
+\begin{lemma}
+    $\approx$ is even a convergence relation with respect to $\delta$. That is,
+    when $p\approx q$, then $\delta(p,a) \approx \delta(q,a) \forall a\in \Sigma$
+\end{lemma}
+Let $M=(Q,\Sigma, \delta, s, F$ be a DFA. Define $M/\approx = (Q', \Sigma, \delta', s', F')$.
+\\Where:
+\begin{align*}
+    Q'&=\left\{ \left[ p \right]\middle | p \in Q \right\}\\
+    \delta'(\left[ p \right], a) &= \left[ \delta(p,a) \right]\\
+    s' &= \left[ s \right]\\
+    F' &= \left\{ \left[ p \right] \middle | p\in F \right\}
+\end{align*}
+
+\begin{lemma}
+    $p\in F$ iff $\left[ p \right]\in F'$.
+\end{lemma}
+\begin{lemma}
+    $\hat{\delta}'(\left[ p \right],x)=\left[ \hat{\delta}(p,x) \right] \forall x\in \Sigma^*$
+\end{lemma}
+\begin{theorem}
+        $L(M/\approx)=L(M)$\\
+        \textbf{Proof:} 
+        \begin{align*}
+            x\in L(M/\approx) &\Leftrightarrow \hat{\delta}'(s',x)\in F'\\
+            &\Leftrightarrow \hat{\delta}'(\left[ s \right],x)\in F' \\
+            &\Leftrightarrow \left[ \hat{\delta}(s,x) \right] \in F'\\
+            &\Leftrightarrow \hat{\delta}(s,x) \in F \\
+            &\Leftrightarrow x\in L(M)
+        \end{align*}
+    \end{theorem}
+    \subsection{Minimization example}
+    How to minimize a DFA $M$? Detect inaccessible states, then construct $M/\approx$.
+    \\Ho to determine $\approx$?\\
+    Stepwise identify pairs if states that are definitely not equivalent.\\
+    if $p  \not \approx q$, then there is a distinguishing string x,
+    \begin{align*}
+        \hat{\delta}(p,x)\in F \land \hat{\delta}(x,q) \notin F
+    \end{align*}
+    This observation can be extended to a correctness proof of the following algorithm
+    to determine $\approx$.
+    \begin{enumerate}
+        \item Write down a table of all pars $\left\{ p,q \right\}$, initially unmarked
+        \item Mark any $\left\{ p,q \right\}$ s.t. $p\in F \land q\not \in F$
+            or $p\not\in F \land q\in F$
+        \item Repeat until no more changes occur:
+            \begin{itemize}
+                \item If there exists an unmarked pair $\left\{ p,q \right\}$ s.t.
+                    $\left\{ \delta(p,a), \delta(q,a) \right\}$ is marked
+                    for some $a\in \Sigma$, then mark $\left\{ p,q \right\}$
+            \end{itemize}
+        \item When done, we have $p\approx q$ iff $\left\{ p,q \right\}$ is unmarked
+    \end{enumerate}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{unminimized.png}
+        \caption{Unminimized DFA}
+    \end{figure}
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{|l|l|l|l|l|l|}
+            \hline
+            0\\\hline
+            x& 1\\\hline
+            x& &2 \\\hline
+            & x & x & 3 \\\hline
+            & x & x & 4 \\\hline
+            x & x1 & x & x & x & 5\\\hline
+        \end{tabular}
+        \caption{after step 1 and 2}
+    \end{table}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{minimized.png}
+        \caption{minimized}
+    \end{figure}
+    \subsection{Myhill-Nerode Theorem}
+    Let $L\subseteq \Sigma^*$ a language.\\
+    Then L is regular if $\equiv_L$ is of infinite index.\\
+    A DFA $M$ induces an equ-relation on $\Sigma^*$:
+    \begin{align*}
+        x\equiv_M y \Leftrightarrow \hat{\delta}(s,y)
+    \end{align*}
+    That is, $x \equiv_L$ if M goes on $x$ to the same state as on $y$.
+    \\\textbf{Note:} $\equiv_M$ is an equ-relation. Every equ-class corresponds
+    to a state of $M$.\\
+    In the book $\equiv_M$ is called Myhill-Nerode relation.\\
+    Also a language $L$ induces an equ-relation on $\Sigma^*$:
+    \begin{align*}
+        x\equiv_L y \Leftrightarrow \forall z\in \Sigma^*: xz\in L \Leftrightarrow yz\in L
+    \end{align*}
+    \subsubsection{Sketch of proof}
+    ``$\Rightarrow$'' be L regular . Then there is a DFA M for L. We observe:
+    \begin{itemize}
+        \item whenever $x \equiv_M y$, then $x\equiv_L y$\\
+            Therefore, any $\equiv_M$-equ-class is a subset of exactly on $\equiv_L$-equ-class.
+        \item Since any $\equiv_L$-equ-class is a subset of $\Sigma^*$ and since
+            $\equiv_M$ partitions $\Sigma^*$, any number of $\equiv_L$-equ-class
+            must be in some $\equiv_M$-equ-class.
+    \end{itemize}
+    We conclude from these points that the number of $\equiv_L$-equ-classes can not be greater
+    than the number of $\equiv_M$-equ-classes, which is the number of states of $M$,
+    which is finite. $\Rightarrow \equiv_L$ is of finite index.\\
+    ``$\Leftarrow$''. Let the number of $\equiv_L$-equ-classes be finite. We construct
+    a DFA whose states ``are'' the $\equiv_L$-equ-clasees.
+    \begin{itemize}
+        \item start state: $\left[ \varepsilon \right]$
+        \item a state $\left[ x \right]$ is final iff $\left[ x \right]$ contains
+            some string from L
+        \item $\delta(\left[ x \right], a) = \left[ xa \right]$
+    \end{itemize}
+    \begin{enumerate}
+        \item Show that $\delta$ is well-defined\\
+            (that is, $\delta(\left[ x \right],a)=\left[ ya \right] \forall y\in \left[ x \right]$
+        \item Show that the DFA accepts exactly L
+    \end{enumerate}
+
 \end{document}
