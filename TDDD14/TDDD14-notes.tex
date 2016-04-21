@@ -521,7 +521,7 @@ accepted language.
         \begin{table}[H]
             \centering
             \begin{tabular}{r|l l|l|l| l l}
-                & a & b * $\varepsilon$ & $C_\varepsilon$ & a & b\\\hline
+                & a & b & $\varepsilon$ & $C_\varepsilon$ & a & b\\\hline
                 SF & $\emptyset$ & $\emptyset$ & 1 & $\left\{ 1 \right\}$ & $\left\{ s,1 \right\}$ & $\left\{  1,2,s\right\}$\\
                 1 & 1 & 2 & $\emptyset$ & $\left\{ 1 \right\}$ &$\left\{ 1 \right\}$ & $\left\{ 1,2,S \right\}$\\
                 2 & $\emptyset$ & $\emptyset$ & s & $\left\{ 2,s,1 \right\}$ & $\left\{ 1 \right\}$ & $\left\{ 1,2,s \right\}$
@@ -767,5 +767,39 @@ Let $M=(Q,\Sigma, \delta, s, F$ be a DFA. Define $M/\approx = (Q', \Sigma, \delt
             (that is, $\delta(\left[ x \right],a)=\left[ ya \right] \forall y\in \left[ x \right]$
         \item Show that the DFA accepts exactly L
     \end{enumerate}
+    \section{Slutenhetsegenskaper (closure properties)}
+    $L_1,L_2$ reguljära språk. Är $L_1\cup L_2$ reguljärt? Is it true for all
+    regular languages? In that case regular languages are closes under union.
+    \begin{itemize}
+        \item L regular $\Rightarrow$ $\sim L$ regular? $\sim L =$ complement\\
+            Given an DFA A for L. Read x and ends in an end state $\Rightarrow$ $x\in L$\\
+            New DFA $A'$ for $\sim L$ have the inverted end and non-end state compared to A.\\
+            $\sim L$ is regular.
+        \item $L_1,L_2$ regular $\Rightarrow$ $L_1 \cup L_2$ regular?\\
+            Yes: $L_1=L(r_1),L_2=L(r_2),L_1\cup L_2 = L(r_1+r_2)$
+        \item $L_1,L_2$ regular $\Rightarrow$ $L_1 \cap L_2$ regular? Yes!\\
+            $L_1:a*b$ $L_2:ab*$ Build DFA where each state symbolizes being in a state in $L_1$ and $L_2$.\\
+            Only states which contains end states from both languages are ok.\\
+            $L_1\cap L_2: ab$
+        \item Alternatively: $L_1\cap L_2 = \sim (\sim L_1 \cup \sim L_2)$
+        \item Regular languages are closed under $\sim,\cup,\cap$ and under concatination and $*$.
+    \end{itemize}
+
+    \section{Homomorfismer}
+    A homomorphism is a function $h:\Sigma^*\rightarrow \Gamma^*$.\\
+    $h(xy)=h(h)h(y)$, $h(\varepsilon)=\varepsilon$\\
+    It is enough to define $h:\Sigma \Rightarrow \Gamma^*$.\\
+    \begin{itemize}
+        \item $A\subseteq \Sigma^*:h(A)=\left\{ h(x) \middle | x\in A \right\}\subseteq \Gamma^*$
+        \item $B\subseteq \Gamma^*:h^{-1}(B)=\left\{ x \middle | h(x) \in B \right\} \subseteq \Sigma^*$
+    \end{itemize}
+    Example: $\Sigma = \left\{ a,b,c,d,e \right\}$, $\Gamma = \left\{ p,q \right\}$.\\
+    $h(a)=pp,h(b)=pq,h(c)=qq,h(d)=ppp,h(e)=qqq$.\\
+    $A=\left\{ abc \right\},h(A)=\left\{ pppqqq \right\}$\\
+    $B=\left\{ pppqqq \right\},h^{-1}(B)=\left\{ abc,de \right\}$\\
+    L regular $\Rightarrow$ h,$h^{-1}$ regular.\\
+    Regular languages are closed under homomorphism and inverse homomorphism.
+    \section{Pumpinglemmat}
+    \marginpar{Lecture 6\\2016-04-20}
 
 \end{document}
