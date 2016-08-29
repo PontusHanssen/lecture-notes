@@ -11,3 +11,6 @@ I take no responsibility for any errors or inconsistencies in the notes, enjoy!
 - [TDDD25](http://www.ida.liu.se/~TDDD25/)
 - [TDDD38](http://www.ida.liu.se/~TDDD38/)
 - [TDDD41](http://www.ida.liu.se/~TDDD41/)
+- [TDDC17](http://www.ida.liu.se/~TDDC17/)
+- [TDDD04](http://www.ida.liu.se/~TDDD04/)
+- [TDDD08](http://www.ida.liu.se/~TDDD08/)

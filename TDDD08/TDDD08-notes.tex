@@ -1,0 +1,98 @@
+
+\documentclass[a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amsmath}
+
+\author{Pontus Persson}
+\title{Lecture Notes\\TDDD08}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+\label{sec:introduction}
+\textbf{At exam:} One a4 paper of own notes.\\
+Core pillars of cource:
+\marginpar[2016-08-29]{Lecture 1}
+\begin{itemize}
+\item Declarative Semantics
+\item Operational Semantics
+\item Programming Semantics
+\item Grammars (definite closed grammars)
+\item Negation in logic programming
+\item Constrains logic programming
+\end{itemize}
+
+\subsection{Cource objectives}
+\begin{itemize}
+\item Logic as a programming language
+\item Theoretical foundation of LP
+\item prolog
+\item Program/think \textbf{declaratively}
+\end{itemize}
+
+\subsection{Declarative vs. Imperative languages}
+Imperative languages descibe actions of a machine. Thinking in terms of a Von
+Neuman machine. Basic concept - variable, abstraction of a RAM cell.
+
+\begin{align}
+ x=x+1\\
+\mbox{In mathematics: }x_{i+1} = x_i+1
+\end{align}
+\\
+A declarativ program describes what should be computed, not necessary how.
+\\It describes the problem/solution - closer to human thinking. Variables are
+like in mathematics.
+\subsection{Logical Programming}
+\begin{description}
+\item[Program] a set of axioms
+\item[Result] its logical consequences
+\item[Computation] proof construction
+\end{description}
+Main programming language - \textit{prolog}.\\
+
+Find grandchild of $X$ using logical proramming notation.
+\begin{align}
+  child(X,Y)  \mbox{ //X is child of Y}\\
+  grandchild(X,Z) \leftarrow child(X,Y) \land child(Y,Z)
+\end{align}
+
+\subsection{Two levels of reading a program}
+\begin{description}
+\item[declarative] a set of axioms
+\item[operational] a description of computations
+\end{description}
+\begin{align}
+ ALGORITHM = LOGIC + CONTROL 
+\end{align}
+Control information
+\begin{itemize}
+\item The order of axioms and within axioms
+\item some extra constructs
+\end{itemize}
+The two levels can be considered seperately. Program correctness is a property
+of the declarative level. But operational level affects performance.
+\\
+Programs consists of rules and facts:
+\begin{align}
+  p(...)\leftarrow p_1(...),...,p_n(...)
+\end{align}
+In prolog $\leftarrow$ is written as \texttt{:-}.\\
+
+\section{Main concepts of logic}
+\begin{description}
+\item[Constants] numbers, lower case strings
+\item[Function symbols] cons/2, +/2, father/1
+\item[Variables] Starts with upper case
+\item[Logical connectives] $\land, \lor, \rightarrow, \lnot, \leftrightarrow$
+\item[Quantifiers] $\forall, \in$
+\item[Auxillary symbols] $.,(,),...$
+\end{description}
+
+Ground term (formula) - containing no variables.\\
+\end{document}

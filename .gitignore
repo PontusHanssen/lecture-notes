@@ -22,3 +22,10 @@
 *.out
 *.pdf
 *.synctex.gz
+*.prv
+*.fls
+*.fdb_latexmk
+*.el
+*.fmt
+_region_.tex
+auto
