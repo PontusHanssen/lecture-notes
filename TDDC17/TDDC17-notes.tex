@@ -6,17 +6,94 @@
 \usepackage[utf8]{inputenc}
 \usepackage{float}
 \usepackage{hyperref}
+\usepackage{amsthm}
+\usepackage{todonotes}
+
 \author{Pontus Persson}
 \title{Lecture Notes\\TDDC17}
 \date{HT-16}
+
+\newtheorem{definition}{Definition}[section]
+
 \begin{document}
 \maketitle
 \tableofcontents
+
 \section{Introduction}
-\marginpar[2016-08-29]{Lecture 1}
-Socrates is mortal.
-\begin{enumerate}
-  \item Abduct Socrates
-  \item Profit
-\end{enumerate}
+
+\todo{2016-08-29}{Lecture 1}
+
+\subsection{What is AI?}
+\textbf{Agent}-based view. An agent interacts with its environment through 
+sensors and actuators. It implements an agent function which maps any percept
+sequence to an action.
+\subsection{Two approaches to AI}
+The goal of AI can be either to achieve an intelligence that matches human
+thinking very closely or an intelligence that thinks or behaves rational.
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|}
+    \hline
+    & Human-Centered & Rationality-Centered \\ \hline
+    Thought process reasoning & & \\ \hline
+    Behavior & & \\ \hline
+  \end{tabular}
+  \caption{AI approaches matrix}
+  \label{tab:aiapproachesmatrix}
+\end{table}
+
+\subsection{Rationality}
+Rationality is dependant on:
+\begin{itemize}
+  \item The agent's percept sequence; everything the agent has received so far
+  \item The embedding environment; what the agent knows about its environment
+  \item The agent's capabilities; the actions it has available
+  \item The external performance measure used to evaluate the agent's
+    performance
+\end{itemize}
+
+\begin{definition}[Ideal Rational Agent]
+  For each possible percept sequence, an ideal rational agent should do whatever
+  action is expected to maximize its performance measure, on the basis of the
+  evidence provided by the percept sequence and whatever built-in knowledge the
+  agent has.
+\end{definition}
+
+\section{Intelligent Agent Paradigm}
+
+A rational agent is one that does the right thing relative to an external
+performance metric. The human body can be thought of as an intelligent agent.
+
+\subsection{Evolutionary AI}
+
+Introduce a progression of agents (AI systems) each more complex than its
+predecessor. Incrementally introduce new techniques to exploit information from
+the environment directly not sensed.
+
+\subsection{Task Environments}
+\begin{description}
+  \item[Fully or partially observable] An agent's sensory apparatus provides the
+    \textit{complete} state of the environment
+  \item[Deterministic or stochastic] The next state of the environment only
+    depends on its previous state and the agent's actions
+  \item[Static or dynamic] The environment is unchanged while the agent is
+    deliberating
+  \item[Descrete or continuous] There are a limited number of distinct percepts
+    and actions. States can be descrete or continuous
+  \item[Episodic or sequential] The agent's experience is divided into episodes
+    such as ``perceiving'' and ``acting''. The quality of the action is only
+    dependent on the current episode
+  \item[Single or multiple agent(s)] An environment can contain multiple agents
+    working cooperatively or competitively
+\end{description}
+
+\subsection{Types of intelligent agents}
+
+\subsubsection{Simple Reflex Agent}
+\begin{itemize}
+  \item Reacts immediately to stimuli in their environment
+  \item Has no internal state
+  \item Uses current state of the environment derived from sensory stimuli
+\end{itemize}
+
 \end{document}
