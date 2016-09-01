@@ -1,13 +1,11 @@
-%        File: TDDC78-lecture-notes.tex
-%     Created: Mon Apr 04 08:00  2016 C
-% Last Change: Mon Apr 04 08:00  2016 C
-%
 \documentclass[a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{float}
 \usepackage{hyperref}
 \usepackage{amsthm}
 \usepackage{todonotes}
+\usepackage{amsmath}
+\usepackage{framed}
 
 \author{Pontus Persson}
 \title{Lecture Notes\\TDDC17}
@@ -18,6 +16,7 @@
 \begin{document}
 \maketitle
 \tableofcontents
+\clearpage
 
 \section{Introduction}
 
@@ -42,6 +41,17 @@ thinking very closely or an intelligence that thinks or behaves rational.
   \label{tab:aiapproachesmatrix}
 \end{table}
 
+\section{Intelligent Agent Paradigm}
+
+A rational agent is one that does the right thing relative to an external
+performance metric. The human body can be thought of as an intelligent agent.
+
+\subsection{Evolutionary AI}
+
+Introduce a progression of agents (AI systems) each more complex than its
+predecessor. Incrementally introduce new techniques to exploit information from
+the environment directly not sensed.
+
 \subsection{Rationality}
 Rationality is dependant on:
 \begin{itemize}
@@ -59,17 +69,6 @@ Rationality is dependant on:
   agent has.
 \end{definition}
 
-\section{Intelligent Agent Paradigm}
-
-A rational agent is one that does the right thing relative to an external
-performance metric. The human body can be thought of as an intelligent agent.
-
-\subsection{Evolutionary AI}
-
-Introduce a progression of agents (AI systems) each more complex than its
-predecessor. Incrementally introduce new techniques to exploit information from
-the environment directly not sensed.
-
 \subsection{Task Environments}
 \begin{description}
   \item[Fully or partially observable] An agent's sensory apparatus provides the
@@ -81,7 +80,7 @@ the environment directly not sensed.
   \item[Descrete or continuous] There are a limited number of distinct percepts
     and actions. States can be descrete or continuous
   \item[Episodic or sequential] The agent's experience is divided into episodes
-    such as ``perceiving'' and ``acting''. The quality of the action is only
+    such as ``perceiving and acting''. The quality of the action is only
     dependent on the current episode
   \item[Single or multiple agent(s)] An environment can contain multiple agents
     working cooperatively or competitively
@@ -90,10 +89,118 @@ the environment directly not sensed.
 \subsection{Types of intelligent agents}
 
 \subsubsection{Simple Reflex Agent}
+Also called \textit{Stimulus-Response Agent}.
 \begin{itemize}
   \item Reacts immediately to stimuli in their environment
   \item Has no internal state
   \item Uses current state of the environment derived from sensory stimuli
 \end{itemize}
 
+\todo{2016-08-30}{Lecture 2}
+\vspace{5mm}
+\begin{framed}
+\noindent \textbf{Example: navigate}\\
+Specify a function of the sensory inputs that selects actions appropriate for
+task ahievement.
+\begin{align}
+  f: \left\{ s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_7 \right\} \rightarrow \left\{ north,
+    east, south, west
+  \right\}
+\end{align}
+
+Perception processing produces a set of features ($x_1,..,x_n$) from a set of
+sensor values ($s_1,..,s_n$).
+\begin{align}
+  x_1=s_2+s_3\\
+  x_2=s_4+s_5\\
+  x_3=s_6+s_7\\
+  x_4=s_8+s_1\\
+\end{align}
+Action function phase:
+\begin{align}
+  x_1 \land \lnot x_2 &\mbox{ east} \\
+  x_2 \land \lnot x_3 &\mbox{ south} \\
+  x_3 \land \lnot x_4 &\mbox{ west} \\
+  x_4 \land \lnot x_1 &\mbox{ north} \\
+  \mbox{else} &\mbox{ north}
+\end{align}
+\end{framed}
+\subsubsection{Model-based Reflex Agent}
+\begin{itemize}
+  \item Limited internal state
+  \item Environmental state at $t+1$ is a function of:
+    \begin{itemize}
+      \item the sensory input at $t+1$
+      \item the action taken at time $t$
+      \item the previous environmental state at $t$
+    \end{itemize}
+\end{itemize}
+
+If all important aspects of the environment relevant to a task can be sensed at
+the time the agent needs to know them and no need for internal memory.\\
+In general, sensory capabilities are limited. Compensate by using a stored model
+of the environment.
+
+\subsubsection{Goal-Based Agents}
+Planning and reasoning agents. \\
+Main part of course:
+\begin{itemize}
+  \item Search
+  \item Knowledge representation and reasoning
+  \item Planning
+\end{itemize}
+Agents with purpose!
+\begin{itemize}
+  \item Rich internal state
+  \item Can \textbf{anticipate} the affects of their action
+  \item Take those actions expected to lead toward achievement of goals
+  \item Capable of reasoning and deducting properties of the world
+\end{itemize}
+
+\subsubsection{Utility-Based Agents}
+Similar to goal based agents but with preferences about future states in
+environment.
+
+\subsubsection{Learning-Based Agents}
+\begin{itemize}
+  \item Has the ability to modify behaviour for the better based on experience
+  \item It can learn new behaviours via exploration of new experiences
+\end{itemize}
+
+\subsection{Deliberation vs. Reaction}
+More information $\Rightarrow$ slower response, but better predictions and
+accurate\\
+Less information $\Rightarrow$ fast response, no predictions.\\
+\textbf{A good AI is both deliberate and reactive}.
+
+\section{Physical symbol system}
+\begin{definition}[Physical symbol system]
+  A physical symbol system consists of:
+  \begin{itemize}
+    \item A set of entities called symbols which are physical patterns that can
+      occur as components of another type of entity called an expression (or
+      symbol structure)
+    \item At any instant of time the system will contain a collection of symbol
+      structures.
+    \item The system also contains a collection of processes that operate on
+      expressions to produce other expressions: processes of creation,
+      modification reproduction and destruction.
+  \end{itemize}
+  
+\end{definition}
+A physical symbol system has the necessary and sufficient means for general
+intelligent action.
+\\
+\textbf{WILL BE ON EXAM!, read article!}
+\\
+\\
+\todo{2016-08-31}{Lecture 3}
+
+\section{Search}
+
+Proof of optimality of A* using three-search will be on the exam.
+
+\begin{proof}{A*}
+  Insert proof from slides here
+\end{proof} 
 \end{document}

@@ -5,6 +5,9 @@
 \usepackage{float}
 \usepackage{hyperref}
 \usepackage{listings}
+\usepackage{todonotes}
+\usepackage{amsmath}
+\usepackage{framed}
 
 \author{Pontus Persson}
 \title{Lecture Notes\\TDDD04}
@@ -13,16 +16,60 @@
 \maketitle
 \tableofcontents
 
-\section{Introduction}
+\section{What is testing?}
 
-\marginpar{Lecture 1}
-\subsection{Fault Classification}
+\todo{2016-08-29}{Lecture 1}
 
+\subsection{Types of Oracles}
+\begin{description}
+  \item[Kiddie Oracles] Just run the program and see what comes out. If it looks
+    about righ, it must be right.
+  \item[Regression Test Suites] Run the program and compare the output to the
+    results of the same tests run against a previous version of the program.
+  \item[Validated Data] Run the program and compare the results against a
+    standard such as a table, formula or other accepted definition of valid
+    output
+  \item[Purchased Test Suites] Run the program against a standardized test suite
+    that has been previously created and validated. Programs like compilers, Web
+    browsers and SQL processors are often tested against such suites.
+  \item[Existing Program] Run the program and compare the output to another
+    version of the program
+\end{description}
+
+\subsection{Testing Levels}
+Typically testing is performed at four different levels:
+\begin{description}
+  \item[Unit Testing] A unit is the smallest piece of software a developer
+    creates. In C++ and Java the unit is the class; in C the unit is the
+    function.
+  \item[Integration Testing]  In integration we assemble units together into
+    subsystems. It is possible to units to function perfectly in isolation but
+    to fail when integrated (e.g. called with wrong arguments).
+  \item[System Testing] Testing at the highest level of integration. Many types:
+    functionality, usability, security, internationalization, reliability,
+    performance and many more.
+  \item[Acceptance Testing] Acceptance testing is defined as that testing, which
+    when completed successfully, will result in the customer accepting the
+    software and giving us the money.
+\end{description}
+All these levels are not applicable when testing all systems. In web
+applications with a very short development time this is a more common alternate
+set of levels:
 \begin{itemize}
-\item What kind is it?
-\item Severity - how bad is it?
+  \item Cody quality
+  \item Functionality
+  \item Usability
+  \item Performance
+  \item Security
 \end{itemize}
 
+\subsection{Order of Execution}
+There are two styles of test case design regarding order of test execution.
+\begin{description}
+  \item[Cascading test cases] Tests may build on each other. The next test use
+    the state achieved in the program by the previous test.
+  \item[Intependent test cases]
+\end{description}
 \subsection{Limitations of testing}
 \label{sec:limitations of testing}
 
@@ -31,5 +78,155 @@ Testing cannot prove correctness.
 \item Testing can demonstrate the presence of failures
 \item Testing cannot prove the absence of failures
 \end{itemize}
+
+\todo{2016-08-31}{Lecture 2}
+
+\section{Black box testing}
+Black box testing is a strategy in which testing is based solely on the
+requirements and specifications. Unlike white box testing, black box testing
+requires no knowledge of the internal paths, structure, or implementation of the
+SUT.
+\begin{framed}
+  \noindent\textbf{Note:} A tester can never be sure of how much of the system has been tested when
+  using black box testing.
+\end{framed}
+
+Different kinds of unit testing:
+\begin{itemize}
+  \item Code inspections
+  \item Code walk troughs
+  \item Black-box
+  \item White-box
+\end{itemize}
+Inputs and how they are constructed must be constructed before-hand.
+For design \textit{specification defects}, inspections are both more efficient and more
+effective than functional testing. For \textit{code}, functional or structural
+testing is ranked more effective or efficient than inspection in most studies.
+
+\subsection{Equivalence class testing}
+Equivalence class testing is a technique used to reduce the number of test cases
+to a manageable level while still maintaining reasonable test coverage.
+\begin{framed}
+  \noindent\textbf{Example: Job applicants' age}\\
+  We are writing a module for a HR system that decide how to process employment
+  applications based on a person's age.
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{r l}
+      0-16 & Don't hire\\
+      16-18 & Can hire as part-time\\
+      18-55 & Can hire as full-time\\
+      55-99 & Don't hire
+    \end{tabular}
+    \caption{Organization new hire's age policy}
+    \label{tab:agepolicy}
+  \end{table}
+  \noindent Example implementation:
+  \begin{verbatim}
+    if (age >= 0 && age <= 16)
+      hire = ``no'';
+    if (age >= 16 && age <=18)
+      hire = ``part'';
+    if (age >= 18 && age <= 55)
+      hire = ``full'';
+    if (age >= 55 && age <= 99)
+      hire = ``NO'';
+  \end{verbatim}
+  \noindent Clearly we don't have to test all ages $\in [1,16]$. Only one value
+  needs to be tested. The same is true for the other rages. They are called
+  \textbf{equivalence classes}.
+\end{framed}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|}
+    \hline
+    EC & Condition & valid/invalid \\\hline
+    $EC_0$ & $x \neq y \neq z,x,y,z\in \mathcal{Z}^+$ & valid\\ \hline
+    $EC_1$ & two equal, one different and $x,y,z\in \mathcal{Z}^+$& valid
+    \\\hline
+    $EC_2$ & all equal and positive & valid \\\hline
+    $EC_3$ & at least one negative & invalid \\\hline
+  \end{tabular}
+  \caption{Equivalence classes}
+\end{table}
+
+\subsection{Boundary value testing}
+Focuses on testing boundaries of equivalence classes. Looking back at the
+previous example we note that there is a problem at the boundary edges (16, 18
+and 55 are in two equiv. classes).\\
+Assume that the age ranges were actually specified as inclusive at the lower
+bound and exclusive at the upper bound. The interesting values on or near the
+boundaries are:
+\begin{itemize}
+  \item $\left\{ -1, 0, 1 \right\}$
+  \item $\left\{ 15,16,17 \right\}$
+  \item $\left\{ 17,18,19 \right\}$
+  \item $\left\{ 54,55,56 \right\}$
+  \item $\left\{ 97,98,99 \right\}$
+\end{itemize}
+
+\subsubsection{Technique}
+\begin{enumerate}
+  \item Identify equivalence classes
+  \item Identify boundaries of each equivalence class
+  \item Create test cases for each boundary with one case below, on and above
+    the boundary
+\end{enumerate}
+
+\subsection{Decision Tables}
+Decision Tables are an excellent tool to capture certain kinds of system
+requirement s and to document internal system design.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    & \textbf{Rule 1} & \textbf{Rule 2} & \textbf{Rule 4} & \textbf{Rule 4}
+    \\\hline
+    \textbf{Conditions} & & & & \\\hline
+    Married? & Yes & Yes & No & No \\\hline
+    Good Student? & Yes & No & Yes & No \\\hline
+    & & & & \\\hline
+    \textbf{Actions} & & & & \\\hline
+    Discount (\$) & 60 & 25 & 50 & 0 \\\hline
+  \end{tabular}
+  \caption{Decision table for discount}
+  \label{tab:disount}
+\end{table}
+Condition values can also be non-binary, such as ranges and ``don't care''.\\
+After creating the decision table it's time to create test cases, one per rule.
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|*{3}{r|}}
+    \hline
+    \textbf{Test Case ID} & \textbf{Married?} & \textbf{Good Student?} &
+    \textbf{Expected Result} \\\hline
+    \textbf{TC1} & Yes & Yes & 60 \\\hline
+    \textbf{TC2} & Yes & No & 25 \\\hline
+    \textbf{TC3} & No & Yes & 50 \\\hline
+    \textbf{TD4} & No & No & 0 \\\hline
+  \end{tabular}
+  \caption{Test cases}
+  \label{tab:testcasesdiscount}
+\end{table}
+
+\subsection{Pair-wise testing}
+\subsubsection{Orthogonal Arrays}
+Use orthogonal arrays with variables as columns. One test for each row.
+\subsubsection{Allpairs Algorithm}
+Algorithm available at satisficing.com. Creates similar but unbalanced table
+(with fewer rows) to orthogonal array method.
+
+\section{White box Testing}
+General white box testing process:
+\begin{enumerate}
+  \item Analyze SUT's implementation
+  \item Identify paths through SUT
+  \item Choose input to take paths. Determine expected output
+  \item Run tests
+  \item Compare actual output to expected
+\end{enumerate}
+
 
 \end{document}
