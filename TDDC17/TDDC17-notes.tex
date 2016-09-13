@@ -203,4 +203,43 @@ Proof of optimality of A* using three-search will be on the exam.
 \begin{proof}{A*}
   Insert proof from slides here
 \end{proof} 
+
+\todo{2016-09-06}{Lecture 4}
+
+\todo{2016-09-13}{Lecture 6}
+
+\section{Propositional logic}
+\textbf{Atoms:} Two distinguished atoms T and F\\
+Semantics is about associating elements of a logical language with elements of a
+domain of discourse. In the case of propositional logic the domain of discourse
+is propositions about the world. An interpretation associates a proposition with
+each atom and a value (True or False).\\
+An interpretation satisfies a well formed formula if the wff is assigned the
+value True under the interpretation.\\
+A wff is said to be inconsistent or unsatisfiable if there are no
+interpretations that satisfy it.\\
+A wff is said to be valid if it has value True under all interpretations of its
+constituent atoms. Example $\not (P \land P)$.\\
+
+\begin{align}
+  \lnot (P \land Q) &\Leftrightarrow \lnot P \lor \lnot Q
+\end{align}
+If a wff $\omega$ has a value True under all those interpretations for which
+each of the wffs in a set $\Delta$ has value True, then we say that $\Delta$
+logically entails $\omega$ $\Delta \models \omega$.\\
+$\omega_n$ can be proved from a set $\Delta$: $\Delta \vdash \omega_n$
+\section{Soundness and Completeness}
+\begin{framed}
+  If, for any set of wffs $\Delta$, and wff $\omega$, $\Delta \vdash \omega$
+  implies $\Delta \models \omega$, we say that the set of inference rules is
+  sound.
+\end{framed}
+
+\begin{framed}
+  If for any set of wffs $\Delta$ and wff, $\omega$ it is the case that whenever
+  $\Delta \models \omega$, there exists a proof of $\omega$ from $\Delta$ using
+  the set of inference rules, we say that it is complete
+\end{framed}
+
+
 \end{document}
