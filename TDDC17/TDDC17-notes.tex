@@ -219,7 +219,7 @@ value True under the interpretation.\\
 A wff is said to be inconsistent or unsatisfiable if there are no
 interpretations that satisfy it.\\
 A wff is said to be valid if it has value True under all interpretations of its
-constituent atoms. Example $\not (P \land P)$.\\
+  constituent atoms. Example $\lnot (P \land P)$.\\
 
 \begin{align}
   \lnot (P \land Q) &\Leftrightarrow \lnot P \lor \lnot Q
@@ -241,5 +241,16 @@ $\omega_n$ can be proved from a set $\Delta$: $\Delta \vdash \omega_n$
   the set of inference rules, we say that it is complete
 \end{framed}
 
+\todo{2016-09-14}{Lecture 7}
+\section{Effective Propositional Model Checking}
+Checking that $\alpha \models \beta$ can be done by checking that: $\alpha \land
+\lnot \beta$ is unsatisfiable. if $\alpha \rightarrow \beta$ is valid, then
+$\lnot (\alpha \rightarrow \beta)$ is unsatisfiable. 
+
+\section{Reasoning with uncertainty - Bayesian Networks}
+\todo{2016-09-20}{Lecture 8}
+
+\todo{2016-09-27}{Lecture 10}
+\section{A Gentle Introduction to Machine Learning}
 
 \end{document}
