@@ -1,0 +1,204 @@
+
+\documentclass[a4paper]{article}
+
+\usepackage{float}
+\usepackage{hyperref}
+
+\title{TDDD56\\GPU and Multicore Programming}
+\author{Pontus Persson}
+\date{HT-2016}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Course Overview}
+\marginpar{Lecture 0\\2016-10-31}
+Lessons and labs are mandatory.\\
+Parallel sorting competition.\\
+14 lectures.\\
+Hard deadline for labs \textbf{2016-12-15}.
+
+\section{The Multicore Challenge }
+\marginpar{Lecture 1\\2016-10-31}
+Single-thread performance is limited by
+\begin{itemize}
+  \item Instruction Level Parallelism (ILP) Wall
+  \item Memory Wall
+    \begin{itemize}
+      \item Gap between CPU and memory speed
+    \end{itemize}
+  \item Power Wall
+    \begin{itemize}
+      \item higher clock $\rightarrow$ more power, more heat
+    \end{itemize}
+\end{itemize}
+\subsection{ILP}
+Multiple functional units in parallel. 2 main paradigms
+\begin{itemize}
+  \item VLIW (Very large Instruction Words)
+    \begin{itemize}
+      \item Parallelism is explicit, hard.
+    \end{itemize}
+  \item Superscalar architecture
+    \begin{itemize}
+      \item Sequential instruction stream
+      \item Hardware-managed dispatch
+      \item Power + area overhead
+    \end{itemize}
+\end{itemize}
+Solution: \textit{Multithreading}.
+
+\subsection{Multithreading}
+\begin{itemize}
+  \item Different granularity, how fast is context switching?
+\end{itemize}
+Use heavy multithreading to ``hide'' cache misses.
+
+\subsection{SIMD}
+Single Instruction Stream, Multiple Data Streams.\\
+\begin{itemize}
+  \item Single thread of control.
+  \item Apply the same primitive operation in parallel to multiple data element
+    stored contiguously. 
+  \item SIMD units use long ``vector registers'', each holding multiple data
+    elements.
+\end{itemize}
+
+\begin{itemize}
+  \item[+] Common today
+  \item[+] Area- and energy-efficient
+  \item[$-$] Code must be rewritten by programmer or compiler
+  \item[$-$] Does not help much for memory bandwidth
+\end{itemize}
+\subsection{The Memory Wall}
+\begin{itemize}
+  \item Memory hierarchy
+  \item Data locality
+  \item Cache size
+\end{itemize}
+
+What if there is no / little data locality?
+\begin{itemize}
+  \item Irregular applications, e.g. sorting, searching, optimization, etc.
+\end{itemize}
+
+Solution: Spread out / overlap memory access delay
+\begin{itemize}
+  \item Programmer/Compiler: Prefetching, on-chip pipe-lining
+  \item[+] Generally: Hardware multithreading
+\end{itemize}
+
+\subsection{The Power Wall}
+With decreasing transistor size, the power density (Watt/mm$^2$) remains
+constant, but not true since late '90s.
+\begin{itemize}
+  \item Static power losses (leakage current, etc.).
+  \item Voltage cannot be decreased at the same pace.
+  \item The clock frequency is stuck at 3 GHz.
+\end{itemize}
+
+$\rightarrow$ The end of Dennard scaling:
+\begin{itemize}
+  \item Power density now increases with Moore's law
+  \item ``thermal runaway'', ``dark silicon problem''.
+\end{itemize}
+
+\begin{description}
+  \item[Dark silicon] Because of heat problem, parts of chip shut down to cool.
+\end{description}
+Power = Static power + Dynamic power\\
+Dynamic power $\propto$ Frequency$^3$\\
+Solve with multi-core!
+
+\subsection{Standard CPU Multicore Designs}
+Standard desktop CPUs hace a few cores.
+\begin{itemize}
+  \item On-chip cache.
+    \begin{itemize}
+      \item L1 core private
+      \item L2 shared by groups of cores
+    \end{itemize}
+\end{itemize}
+Problems with inconsistency!
+
+\subsection{Scaling up: Network on chip}
+Cache-coherent share memory (hardware controlled) does not scale well on many
+cores.\\
+Idea: NCC-NUMA - Non-cache-coherent, non-uniform memory access
+\begin{itemize}
+  \item Physically distributed on-chip memory
+  \item On-chip network, connecting tiles of PEs
+  \item Software responsible for maintaining coherence
+\end{itemize}
+
+\subsection{General Purpose GPUs}
+Each core has a 
+\begin{itemize}
+  \item Floating point / integer unit
+  \item Logic unit
+  \item Move, compare unit
+  \item Branch unit
+\end{itemize}
+Heavily multithreaded. SIMD architecture, but with multiple cores executing the
+same instruction with different data. Not good for code with a lot of branches.
+\begin{itemize}
+  \item[+] Good at data-parallel computations
+  \item[+] In theory, $\sim$10x to $\sim$100x higher throughput than CPUs
+\end{itemize}
+
+\subsection{The future will be heterogeneous}
+Need 2 kinds of cores
+\begin{itemize}
+  \item A few ``fat'' cores for high single-thread performance
+  \item Hundreds of small cores for parallel code
+\end{itemize}
+
+\marginpar{Lecture 2\\2016-11-02}
+
+\subsection{The Challenge}
+\begin{itemize}
+  \item Today, basically every computers are parallel computers
+  \item Utilizing more than one CPU requires thread-level parallelism
+  \item One of the biggest challanges: \textbf{Exploiting parallelism}
+    \begin{itemize}
+      \item Parallel computing is more error-prone (deadlocks, races, further
+        sources of inefficiencies)
+      \item More expensive and time-consuming to develop
+    \end{itemize}
+\end{itemize}
+
+Can't the compiler fix it?
+\begin{itemize}
+  \item Requires static analysis - not effective for pointer-based languages
+  \item Requires programmer hints / rewrite
+  \item OK for benign special cases (FORTRAN loop SIMDization)
+\end{itemize}
+
+At runtime?
+\begin{itemize}
+  \item Speculative multithreading (not scalable)
+\end{itemize}
+
+\begin{description}
+  \item[Bad news 1] Many programmers (also less skilled ones) will need to write
+    parallel code in the future
+  \item[Bad news 2] There is no standard model for parallel computers (like von
+    Neumann for sequential programs)
+\end{description}
+
+\section{Parallel computing with threads and tasks}
+
+\begin{description}
+  \item[Concurrent computing] 1 or few CPUS, time sharing. Quasi-simultaneous
+    execution
+  \item[Parallel computing]  Many CPUs. Simultaneous execution of many/all
+    threads of the same application
+\end{description}
+
+\subsection{Processors and threads}
+Look at slides, old news.
+
+
+\end{document}
